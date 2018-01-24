@@ -88,7 +88,7 @@ val cats = Seq(
   "org.typelevel" %% "cats-core" % catsVersion,
   "org.typelevel" %% "cats-kernel" % catsVersion,
   "org.typelevel" %% "cats-macros" % catsVersion,
-//  "org.typelevel" %% "cats-effect" % "0.8",
-//  "org.typelevel" %% "mouse" % "0.16",
+  "org.typelevel" %% "cats-effect" % "0.8",
+  "org.typelevel" %% "mouse" % "0.16",
 //  "org.typelevel" %% "cats-mtl" % catsVersion
 )
