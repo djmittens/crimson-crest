@@ -86,7 +86,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
       glfwDestroyWindow(window)
     }
 
-  override def renderLoop(window: Window, loop: RenderLoopAlg[IO]): IO[Unit] = IO.pure {
+  override def renderLoop[State](window: Window, loop: RenderLoopAlg[IO, State]): IO[Unit] = IO.pure {
     glfwMakeContextCurrent(window)
 
     // Enable v-sync
@@ -104,13 +104,14 @@ object GlfwInterpIO extends WindowAlg[IO] {
 
     GL.createCapabilities()
 
-    loop.init().unsafeRunSync()
+    val state = loop.init().unsafeRunSync()
+    val render = loop.render(state)
 
     try {
       // Run the rendering loop until the user has attempted to close
       // the window or has pressed the ESCAPE key.
       while (!glfwWindowShouldClose(window)) {
-        loop.render().unsafeRunSync()
+        render.unsafeRunSync()
 
         // swap the color buffers
         glfwSwapBuffers(window)
@@ -119,7 +120,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
         glfwPollEvents()
       }
     } finally {
-      loop.terminate().unsafeRunSync()
+      loop.terminate(state).unsafeRunSync()
     }
   }
 

@@ -11,7 +11,7 @@ trait WindowAlg[F[_]] {
 
   def interceptClose(w: Window, f: Window => Unit): F[Unit]
 
-  def renderLoop(window: Window, loop: RenderLoopAlg[F]): F[Unit]
+  def renderLoop[State](window: Window, loop: RenderLoopAlg[F, State]): F[Unit]
 }
 
 object WindowAlg {
