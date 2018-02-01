@@ -60,7 +60,8 @@ object GlfwInterpIO extends WindowAlg[IO] {
       glfwGetWindowSize(window, pWidth, pHeight)
 
       // Get the resolution of the primary monitor
-      val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())
+
+      val vidmode = glfwGetVideoMode(glfwGetMonitors().get(0))
 
       // Center the window
       glfwSetWindowPos(
