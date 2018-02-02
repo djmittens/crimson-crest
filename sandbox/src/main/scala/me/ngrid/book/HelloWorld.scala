@@ -5,7 +5,7 @@ import cats.implicits._
 import me.ngrid.crimson.client.graphics.algebras.GLPrimitivesInterp.PointPrimitive
 import me.ngrid.crimson.client.graphics.algebras.{GLPrimitivesInterp, RenderLoopAlg}
 import me.ngrid.crimson.client.graphics.lwjgl.RunGlfwApp
-import me.ngrid.crimson.client.graphics.lwjgl.algebras.GLShaderAlg
+import me.ngrid.crimson.client.graphics.lwjgl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
 import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, OpenGLInterpIO}
 import org.lwjgl.opengl._
 import spire.implicits._
@@ -41,7 +41,7 @@ object HelloWorld {
       """.stripMargin)
 
     // (list(shaders), linked program, vertex array object)
-    type State = (List[Int], Int, Option[PointPrimitive[IO]])
+    type State = (List[GLShader[IO]], GLShaderProgram[IO], Option[PointPrimitive[IO]])
 
     object gameloop extends RenderLoopAlg[IO, State] {
       override def init(): IO[State] = for {
@@ -50,14 +50,11 @@ object HelloWorld {
         }
         vs <- vertexShader
         fs <- fragmentShader
-        pg <- gl.createProgram()
-        _ <- gl.attachShader(pg, vs)
-        _ <- gl.attachShader(pg, fs)
-        _ <- gl.linkProgram(pg)
+        pg <- glShader.createProgram(List(vs, fs))
 //        va <- gl.createVertexArrays()
         ps <- IO(primitives(cs))
         point <- ps.fold( _=> IO(None), _.createPoint(pg).map(Some.apply))
-      } yield (List(fs, vs), pg, point)
+      } yield (List(vs, fs), pg, point)
 
       override def render(st: State): IO[Unit] =  {
         val (_, _, point) = st
@@ -65,22 +62,22 @@ object HelloWorld {
         for {
           color <- IO {
             Array(
-              0.0f,
-               0.0f,nextColor(System.nanoTime(), cos[Double]), 1.0f)
+              nextColor(System.nanoTime(), cos[Double]), 0.0f,nextColor(System.nanoTime(), sin[Double]),
+               0.0f, 1.0f)
           }
           _ <- gl.clearBufferfv(GL11.GL_COLOR, 0, color)
 
 //          _ <- gl.drawArrays(GL11.GL_POINTS, vertexArray, 1)
           _ <- point.fold(IO.unit)(_.draw)
+          _ <- IO(Thread.sleep(200))
         } yield ()
       }
 
       override def terminate(st: State): IO[Unit] = {
         val (shaders, program, point) = st
         for {
-          _ <- shaders.map(gl.deleteShader).sequence
-          _ <- gl.deleteProgram(program)
-//          _ <- gl.deleteVertexArrays(vertexArray)
+          _ <- shaders.map(_.delete).sequence
+          _ <- program.delete
           _ <- point.fold(IO.unit)(_.delete)
         } yield ()
       }
@@ -96,7 +93,7 @@ object HelloWorld {
   }
 
   def nextColor(time: Long, f: Double => Double): Float = {
-    val res = f(time.toDouble).toFloat * 0.5f + 0.5f
+    val res = f((time / 1000).toDouble).toFloat * 0.5f + 0.5f
 
 //    println(s"$time, $res")
     res
