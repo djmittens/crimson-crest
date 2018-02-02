@@ -1,12 +1,14 @@
 package me.ngrid.crimson.client.graphics.lwjgl.interpreters
 
 import cats.effect.IO
-import me.ngrid.crimson.client.graphics.algebras.OpenGlAlg
-import org.lwjgl.opengl._
+import me.ngrid.crimson.client.graphics.algebras.opengl.{GL11Alg, GL20Alg, GL30Alg, GL45Alg}
+import org.lwjgl.opengl.{GL, GLCapabilities, _}
 
-import org.lwjgl.opengl.{GL, GLCapabilities}
-
-object OpenGLInterpIO extends OpenGlAlg[IO] {
+object OpenGLInterpIO
+  extends GL11Alg[IO]
+    with GL20Alg[IO]
+    with GL30Alg[IO]
+    with GL45Alg[IO] {
 
   override def clearColor(red: Float, green: Float, blue: Float, alpha: Float): IO[Unit] = IO {
     // Set the clear color
@@ -25,9 +27,7 @@ object OpenGLInterpIO extends OpenGlAlg[IO] {
   def drawArrays(mode: Int, first: Int, count: Int): IO[Unit] = IO {
     GL11.glDrawArrays(mode, first, count)
   }
-  /*
-  Shader stuff
-   */
+
   def compileShader(shader: Int): IO[Unit] = IO {
     GL20.glCompileShader(shader)
   }
@@ -74,20 +74,15 @@ object OpenGLInterpIO extends OpenGlAlg[IO] {
   }
 
 
-  def bindVertexArray(array: Int) = IO {
+  def bindVertexArray(array: Int): IO[Unit] = IO {
     GL30.glBindVertexArray(array)
   }
 
-  def deleteVertexArrays(array: Int) = IO {
+  def deleteVertexArrays(array: Int): IO[Unit] = IO {
     GL30.glDeleteVertexArrays(array)
   }
 
-
-  def createVertexArrays(arr: Array[Int]) = IO {
-    GL45.glCreateVertexArrays(arr)
-  }
-
-  def createVertexArrays() = IO {
+  def createVertexArrays(): IO[Int] = IO {
     GL45.glCreateVertexArrays()
   }
 }

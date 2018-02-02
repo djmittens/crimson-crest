@@ -2,9 +2,9 @@ package me.ngrid.crimson.client.graphics.lwjgl.algebras
 
 import cats.Monad
 import cats.implicits._
-import me.ngrid.crimson.client.graphics.algebras.OpenGlAlg
+import me.ngrid.crimson.client.graphics.algebras.opengl.GL20Alg
 
-case class GLShaderAlg[F[_]: Monad](gl: OpenGlAlg[F]) {
+case class GLShaderAlg[F[_]: Monad](gl: GL20Alg[F]) {
   val GL_VERTEX_SHADER: Int = 0x8B31
   val GL_FRAGMENT_SHADER: Int = 0x8B30
 
