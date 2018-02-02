@@ -18,6 +18,7 @@ object GLPrimitivesInterp {
     if (capabilities.OpenGL45) {
       new GL45(gl, gl, gl, gl).asRight[String]
     } else {
+      println("Hardware fucked")
       Left("this hardware sucks")
     }
   }

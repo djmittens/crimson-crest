@@ -64,7 +64,9 @@ object HelloWorld {
 
         for {
           color <- IO {
-            Array(nextColor(sin[Double]), nextColor(cos[Double]), 0.0f, 1.0f)
+            Array(
+              0.0f,
+               0.0f,nextColor(System.nanoTime(), cos[Double]), 1.0f)
           }
           _ <- gl.clearBufferfv(GL11.GL_COLOR, 0, color)
 
@@ -93,9 +95,11 @@ object HelloWorld {
     }
   }
 
-  def nextColor(f: Double => Double): Float = {
-    val time = System.currentTimeMillis() / 1000
-    max(f(time).toFloat, 0f) * 0.5f + 0.5f
+  def nextColor(time: Long, f: Double => Double): Float = {
+    val res = f(time.toDouble).toFloat * 0.5f + 0.5f
+
+//    println(s"$time, $res")
+    res
   }
 
 }
