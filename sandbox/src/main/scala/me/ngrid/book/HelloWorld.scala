@@ -64,7 +64,7 @@ object HelloWorld {
 
         for {
           color <- IO {
-            Array(nextColor(sin[Float]), nextColor(cos[Float]), 0.0f, 1.0f)
+            Array(nextColor(sin[Double]), nextColor(cos[Double]), 0.0f, 1.0f)
           }
           _ <- gl.clearBufferfv(GL11.GL_COLOR, 0, color)
 
@@ -79,7 +79,7 @@ object HelloWorld {
           _ <- shaders.map(gl.deleteShader).sequence
           _ <- gl.deleteProgram(program)
 //          _ <- gl.deleteVertexArrays(vertexArray)
-          _ <- point.map(_.delete).getOrElse(IO.unit)
+          _ <- point.fold(IO.unit)(_.delete)
         } yield ()
       }
     }
@@ -93,8 +93,9 @@ object HelloWorld {
     }
   }
 
-  def nextColor(f: Float => Float): Float = {
-    max(f(System.nanoTime() / 1000 / 1000 / 1000), 0) * 0.5f + 0.5f
+  def nextColor(f: Double => Double): Float = {
+    val time = System.currentTimeMillis() / 1000
+    max(f(time).toFloat, 0f) * 0.5f + 0.5f
   }
 
 }
