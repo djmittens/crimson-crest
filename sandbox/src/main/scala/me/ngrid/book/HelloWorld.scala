@@ -5,14 +5,14 @@ import cats.implicits._
 import me.ngrid.crimson.client.graphics.algebras.RenderLoopAlg
 import me.ngrid.crimson.client.graphics.lwjgl.RunGlfwApp
 import me.ngrid.crimson.client.graphics.lwjgl.algebras.GLShaderAlg
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, LwjglOpenGLIO}
+import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, OpenGLInterpIO}
 import org.lwjgl.opengl._
 import spire.implicits._
 import spire.math._
 
 object HelloWorld {
   private val glfw = GlfwInterpIO
-  private val gl = LwjglOpenGLIO
+  private val gl = OpenGLInterpIO
   private val glShader = GLShaderAlg(gl)
 
   def main(args: Array[String]): Unit = {
@@ -43,7 +43,10 @@ object HelloWorld {
 
     object gameloop extends RenderLoopAlg[IO, State] {
       override def init(): IO[State] = for {
-        _ <- IO(GL.createCapabilities())
+        _ <- IO{
+          val cap = GL.createCapabilities()
+          println(cap.glClearBufferfv)
+        }
         vs <- vertexShader
         fs <- fragmentShader
         pg <- gl.createProgram()

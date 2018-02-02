@@ -8,7 +8,7 @@ lazy val `crimson-crest` = (project in file(".")).aggregate(client)
 lazy val client = (project in file("client")).
   enablePlugins(ProjectPlugin).
   settings(
-//    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
+    //    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
     libraryDependencies ++=
       libgdx ++ cats
   )
@@ -17,10 +17,6 @@ lazy val sandbox = (project in file("sandbox")).
   enablePlugins(ProjectPlugin).dependsOn(client)
 
 val lwjglVersion = "3.1.5"
-
-val lwjglNatives = "natives-windows"
-//val lwjglNatives = "natives-macos"
-//val lwjglNatives = "natives-linux"
 
 val libgdx = Seq(
   "org.lwjgl" % "lwjgl" % lwjglVersion,
@@ -54,6 +50,11 @@ val libgdx = Seq(
   "org.lwjgl" % "lwjgl-xxhash" % lwjglVersion,
   "org.lwjgl" % "lwjgl-yoga" % lwjglVersion,
   "org.lwjgl" % "lwjgl-zstd" % lwjglVersion,
+) ++
+  Seq("natives-windows", "natives-macos", "natives-linux").
+    flatMap(lwjglNatives(lwjglVersion, _))
+
+def lwjglNatives(lwjglVersion: String, lwjglNatives: String) = Seq(
   "org.lwjgl" % "lwjgl" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-assimp" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-bgfx" % lwjglVersion classifier lwjglNatives,
@@ -68,7 +69,7 @@ val libgdx = Seq(
   "org.lwjgl" % "lwjgl-opengl" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-opengles" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-openvr" % lwjglVersion classifier lwjglNatives,
-  "org.lwjgl" % "lwjgl-ovr" % lwjglVersion classifier lwjglNatives,
+  //  "org.lwjgl" % "lwjgl-ovr" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-par" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-remotery" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-rpmalloc" % lwjglVersion classifier lwjglNatives,
@@ -91,7 +92,7 @@ val cats = Seq(
   "org.typelevel" %% "cats-effect" % "0.8",
   "org.typelevel" %% "mouse" % "0.16",
 
-//  "org.typelevel" %% "cats-mtl" % catsVersion
+  //  "org.typelevel" %% "cats-mtl" % catsVersion
 
   //MATH
   "org.typelevel" %% "spire" % "0.14.1",

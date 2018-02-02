@@ -1,7 +1,7 @@
 package me.ngrid
 
 import me.ngrid.crimson.client.graphics.lwjgl.RunGlfwApp
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, LwjglOpenGLIO, SimpleLoopGL}
+import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, OpenGLInterpIO, SimpleLoopGL}
 import org.lwjgl._
 import org.lwjgl.opengl.GL11._
 //import cats.syntax._
@@ -12,7 +12,7 @@ object LwjglHelloWorld {
     println(s"Hello LWJGL ${Version.getVersion}!")
 
     val glfw = GlfwInterpIO
-    val gl = LwjglOpenGLIO
+    val gl = OpenGLInterpIO
 
     RunGlfwApp {
       for {

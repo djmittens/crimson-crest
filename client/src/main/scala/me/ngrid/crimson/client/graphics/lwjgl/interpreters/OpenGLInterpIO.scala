@@ -6,7 +6,7 @@ import org.lwjgl.opengl._
 
 import org.lwjgl.opengl.{GL, GLCapabilities}
 
-object LwjglOpenGLIO extends OpenGlAlg[IO] {
+object OpenGLInterpIO extends OpenGlAlg[IO] {
 
   override def clearColor(red: Float, green: Float, blue: Float, alpha: Float): IO[Unit] = IO {
     // Set the clear color
