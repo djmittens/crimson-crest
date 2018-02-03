@@ -3,10 +3,11 @@ package me.ngrid.book
 import cats.Monad
 import cats.effect.IO
 import cats.implicits._
+import me.ngrid.crimson.client.filesystem.algebra.TextFileInterpIO
 import me.ngrid.crimson.client.graphics.algebras.GLPrimitivesInterp.PointPrimitive
 import me.ngrid.crimson.client.graphics.algebras.{GLPrimitivesInterp, RenderLoopAlg}
 import me.ngrid.crimson.client.graphics.lwjgl.RunGlfwApp
-import me.ngrid.crimson.client.graphics.lwjgl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
+import me.ngrid.crimson.client.graphics.lwjgl.algebras.{GLShaderAlg, GLShaderProgram}
 import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, OpenGLInterpIO}
 import org.lwjgl.opengl._
 import spire.implicits._
@@ -15,9 +16,9 @@ import spire.math._
 object HelloWorld {
   private val glfw = GlfwInterpIO
   private val gl = OpenGLInterpIO
-  private val glShader = GLShaderAlg(gl)
   private val primitives = GLPrimitivesInterp(gl) _
-  private val blueDotShader = new BlueDotShader(glShader)
+  private val basicShader = new GLShaders(GLShaderAlg(gl))
+  private val txt = TextFileInterpIO
 
   def main(args: Array[String]): Unit = {
 
@@ -29,7 +30,9 @@ object HelloWorld {
         cs <- IO{
           GL.createCapabilities()
         }
-        pg <- blueDotShader.shaderProgram
+        vs <- txt.readAsString("/triangleVertexShader.glsl")
+        fs <- txt.readAsString("/triangleFragmentShader.glsl")
+        pg <- basicShader.basicShaderProgram(vs, fs)
         ps <- IO(primitives(cs))
         point <- ps.fold( _=> IO(None), _.createPoint(pg, 40f).map(Some.apply))
       } yield (pg, point)
@@ -76,31 +79,14 @@ object HelloWorld {
 
 }
 
-class BlueDotShader[F[_]: Monad](glShader: GLShaderAlg[F]) {
+class GLShaders[F[_]: Monad](glShader: GLShaderAlg[F]) {
   // #version 450 core <-- means that we will use version 4.5 of the shading language.
   // This is a single vertex, in the middle of our clip space (??? what the heck does that mean)
   // which is the coordinate system expected by the next stage of the OpenGL pipeline.
-  lazy val vertexShader: F[GLShader[F]] = glShader.vertex(
-    """
-      |#version 450 core
-      |void main(void)
-      |{
-      | gl_Position = vec4(0.0,0.0,0.5,1.0);
-      |}
-    """.stripMargin)
 
-  lazy val fragmentShader: F[GLShader[F]] = glShader.fragment(
-    """
-      |#version 450 core
-      |void main(void)
-      |{
-      | color = vec4(0.0,0.8,1.0,1.0);
-      |}
-    """.stripMargin)
-
-  lazy val shaderProgram: F[GLShaderProgram[F]] = for {
-    vs <- vertexShader
-    fs <- fragmentShader
+  def basicShaderProgram(vertexShader: String, fragmentShader: String): F[GLShaderProgram[F]] = for {
+    vs <- glShader.vertex(vertexShader)
+    fs <- glShader.fragment(fragmentShader)
     pg <- glShader.createProgram(List(vs, fs))
   } yield pg
 }
