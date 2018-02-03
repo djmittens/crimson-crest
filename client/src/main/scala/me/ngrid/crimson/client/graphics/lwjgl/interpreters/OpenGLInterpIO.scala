@@ -24,6 +24,10 @@ object OpenGLInterpIO
     GL.createCapabilities()
   }
 
+  override def pointSize(size: Float): IO[Unit] = IO {
+    GL11.glPointSize(size)
+  }
+
   def drawArrays(mode: Int, first: Int, count: Int): IO[Unit] = IO {
     GL11.glDrawArrays(mode, first, count)
   }
@@ -85,4 +89,5 @@ object OpenGLInterpIO
   def createVertexArrays(): IO[Int] = IO {
     GL45.glCreateVertexArrays()
   }
+
 }

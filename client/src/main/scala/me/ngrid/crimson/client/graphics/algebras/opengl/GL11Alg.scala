@@ -12,4 +12,6 @@ trait GL11Alg[F[_]] {
   def createCapabilities: F[GLCapabilities]
 
   def drawArrays(mode: Int, first: Int, count: Int): F[Unit]
+
+  def pointSize(size: Float): F[Unit]
 }

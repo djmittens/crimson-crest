@@ -8,7 +8,7 @@ import org.lwjgl.opengl.{GL11, GLCapabilities}
 
 //TODO definitely needs to be rethought once i know more.
 trait PrimitivesAlg[F[_], ShaderProgram, Point] {
-  def createPoint(shader: ShaderProgram): F[Point]
+  def createPoint(shader: ShaderProgram, size: Float): F[Point]
 }
 
 object GLPrimitivesInterp {
@@ -27,13 +27,14 @@ object GLPrimitivesInterp {
   class GL45[F[_]: Monad](gl11: GL11Alg[F], gl20: GL20Alg[F], gl30: GL30Alg[F], gl45: GL45Alg[F])
     extends Algebra[F] {
 
-    override def createPoint(shader: GLShaderProgram[F]): F[PointPrimitive[F]] = {
+    override def createPoint(shader: GLShaderProgram[F], size: Float): F[PointPrimitive[F]] = {
       for {
         vArray <- gl45.createVertexArrays()
       } yield new PointPrimitive[F](
         vArray,
         draw = for {
           _ <- gl20.useProgram(shader.ptr)
+          _ <- gl11.pointSize(size)
           _ <- gl11.drawArrays(GL11.GL_POINTS, vArray, 1)
         } yield (),
         delete = gl30.deleteVertexArrays(vArray)
