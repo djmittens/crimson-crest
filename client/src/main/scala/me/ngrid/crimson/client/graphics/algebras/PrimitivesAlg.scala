@@ -34,8 +34,8 @@ object GLPrimitivesInterp {
         vArray,
         draw = for {
           _ <- gl20.useProgram(shader.ptr)
-          _ <- gl11.pointSize(size)
-          _ <- gl11.drawArrays(GL11.GL_POINTS, vArray, 1)
+//          _ <- gl11.pointSize(size)
+          _ <- gl11.drawArrays(GL11.GL_TRIANGLES, vArray, 1)
         } yield (),
         delete = gl30.deleteVertexArrays(vArray)
       )
