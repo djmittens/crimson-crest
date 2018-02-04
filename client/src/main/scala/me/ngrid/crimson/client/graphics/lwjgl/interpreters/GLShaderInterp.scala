@@ -46,7 +46,9 @@ case class GLShaderInterp[F[_] : Monad](gl20: GL20Alg[F])
         logger.trace(s"Attaching a shader to the program: $n -> ${x.ptr}")
         gl20.attachShader(n, x.ptr)
       }.sequence
-      _ <- gl20.linkProgram(n).map { _ => logger.trace(s"Linking program $n") }
+      _ <- gl20.linkProgram(n)
+      _ = logger.trace(s"Linking program $n")
+
       res <- for {
         // Check if the compilation went ok.
         cond <- gl20.getProgrami(n, GL_LINK_STATUS)
@@ -54,7 +56,8 @@ case class GLShaderInterp[F[_] : Monad](gl20: GL20Alg[F])
           if(cond != GL_FALSE) {
             Monad[F].pure(n.asRight[String])
           } else for {
-            err <- gl20.getProgramInfoLog(n).map { l => logger.trace(s"Program Errored: $l"); l }
+            err <- gl20.getProgramInfoLog(n)
+            _ = logger.trace(s"Program Errored: $err")
             _ <- gl20.deleteProgram(n)
           } yield err.asLeft[Int]
       } yield res
