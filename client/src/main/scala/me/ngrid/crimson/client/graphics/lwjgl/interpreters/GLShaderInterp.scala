@@ -14,20 +14,25 @@ case class GLShaderInterp[F[_] : Monad](gl20: GL20Alg[F])
   val GL_LINK_STATUS = 35714
   val GL_FALSE = 0
 
-  def vertex(source: String): F[Either[String, GLShader[F]]] = createShader(GL_VERTEX_SHADER, source)
+  def vertex(source: String): F[Either[String, GLShader[F]]] =
+    createShader(GL_VERTEX_SHADER, source)
 
-  def fragment(source: String): F[Either[String, GLShader[F]]] = createShader(GL_FRAGMENT_SHADER, source)
+  def fragment(source: String): F[Either[String, GLShader[F]]] =
+    createShader(GL_FRAGMENT_SHADER, source)
 
-  def createShader(shaderType: Int, source: String) = for {
+  def createShader(shaderType: Int, source: String): F[Either[String, GLShader[F]]] = for {
     sh <- gl20.createShader(shaderType)
+    _ = logger.trace(s"creating a new shader $sh")
     _ <- gl20.shaderSource(sh, source)
     _ <- gl20.compileShader(sh)
     cond <- gl20.getShaderi(sh, GL_COMPILE_STATUS)
 
     res <- if(cond != GL_FALSE) {
+      logger.trace(s"Successfull compiled shader $sh")
       Monad[F].pure(sh.asRight[String])
     } else for {
       err <- gl20.getShaderInfoLog(sh)
+      _ = logger.trace(s"Encountered an error compiling shader $err")
       _ <- gl20.deleteShader(sh)
     } yield err.asLeft[Int]
   } yield res.map(GLShader(_, source, delete = gl20.deleteShader(sh)))

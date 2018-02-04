@@ -43,7 +43,7 @@ object GLPrimitivesInterp extends LazyLogging {
         vArray,
         draw = for {
           _ <- gl20.useProgram(shaderProgram.ptr)
-          _ <- gl11.drawArrays(GL11.GL_TRIANGLES, vArray, 3)
+          _ <- gl11.drawArrays(GL11.GL_TRIANGLES, 0, 3)
         } yield (),
         delete = gl30.deleteVertexArrays(vArray)
       )
