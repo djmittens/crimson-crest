@@ -5,8 +5,6 @@ trait WindowAlg[F[_]] {
 
   def createOpenGL(): F[Window]
 
-  def swapBuffers(w: Window): F[Unit]
-
   def close(w: Window): F[Unit]
 
   def interceptClose(w: Window, f: Window => Unit): F[Unit]

@@ -32,16 +32,16 @@ object OpenGLInterpIO
     GL11.glDrawArrays(mode, first, count)
   }
 
-  def compileShader(shader: Int): IO[Unit] = IO {
-    GL20.glCompileShader(shader)
-  }
-
   def createShader(t: Int): IO[Int] = IO {
     GL20.glCreateShader(t)
   }
 
   def shaderSource(shader: Int, src: String): IO[Unit] = IO {
     GL20.glShaderSource(shader, src)
+  }
+
+  def compileShader(shader: Int): IO[Unit] = IO {
+    GL20.glCompileShader(shader)
   }
 
   def createProgram(): IO[Int] = IO {
@@ -52,8 +52,24 @@ object OpenGLInterpIO
     GL20.glAttachShader(program, shader)
   }
 
+  def getShaderInfoLog(shader: Int): IO[String] = IO {
+    GL20.glGetShaderInfoLog(shader)
+  }
+
   def linkProgram(program: Int): IO[Unit] = IO {
     GL20.glLinkProgram(program)
+  }
+
+  def getProgrami(program: Int, pname: Int): IO[Int] = IO {
+    GL20.glGetProgrami(program, pname)
+  }
+
+  def getProgramInfoLog(program: Int): IO[String] = IO {
+    GL20.glGetProgramInfoLog(program)
+  }
+
+  def getShaderi(shader: Int, pname: Int): IO[Int] = IO {
+    GL20.glGetShaderi(shader, pname)
   }
 
   def useProgram(program: Int): IO[Unit] = IO {
@@ -87,7 +103,10 @@ object OpenGLInterpIO
   }
 
   def createVertexArrays(): IO[Int] = IO {
-    GL45.glCreateVertexArrays()
+//    GL45.glCreateVertexArrays()
+    val vao = GL30.glGenVertexArrays()
+    GL30.glBindVertexArray(vao)
+    vao
   }
 
 }

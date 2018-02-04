@@ -11,7 +11,7 @@ lazy val client = (project in file("client")).
   settings(
     //    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
     libraryDependencies ++=
-      libgdx ++ cats
+      libgdx ++ cats ++ logging
   )
 
 lazy val sandbox = (project in file("sandbox")).
@@ -97,4 +97,9 @@ val cats = Seq(
 
   //MATH
   "org.typelevel" %% "spire" % "0.14.1",
+)
+
+val logging = Seq(
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2"
 )

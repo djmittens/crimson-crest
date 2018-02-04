@@ -75,9 +75,6 @@ object GlfwInterpIO extends WindowAlg[IO] {
     window
   }
 
-  override def swapBuffers(w: Window): IO[Unit] = IO {
-    glfwSwapBuffers(w) // swap the color buffers
-  }
 
   override def close(window: Window): IO[Unit] =
     IO {
