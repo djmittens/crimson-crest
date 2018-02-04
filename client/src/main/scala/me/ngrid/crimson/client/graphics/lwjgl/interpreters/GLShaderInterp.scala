@@ -54,10 +54,11 @@ case class GLShaderInterp[F[_] : Monad](gl20: GL20Alg[F])
         cond <- gl20.getProgrami(n, GL_LINK_STATUS)
         res <-
           if(cond != GL_FALSE) {
+            logger.trace(s"Successfully linked program $n")
             Monad[F].pure(n.asRight[String])
           } else for {
             err <- gl20.getProgramInfoLog(n)
-            _ = logger.trace(s"Program Errored: $err")
+            _ = logger.trace(s"Program could not be linked: $err")
             _ <- gl20.deleteProgram(n)
           } yield err.asLeft[Int]
       } yield res

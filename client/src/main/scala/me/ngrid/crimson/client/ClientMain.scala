@@ -3,9 +3,9 @@ package me.ngrid.crimson.client
 /*
   * Brader Task list
   * TODO: Async file system access
-  * TODO: Add support for extra dsl's
   * TODO: Add support for cleaner graphics dsl.
-  * TODO: Introduce logging for didfferent steps.
+  * TODO: Subsistem for sound
+  * TODO: Figure out how to make opengl work with mac.
   */
 object ClientMain {
   def main(args: Array[String]): Unit = {

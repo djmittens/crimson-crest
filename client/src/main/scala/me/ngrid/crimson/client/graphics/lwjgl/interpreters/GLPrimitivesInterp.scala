@@ -42,6 +42,7 @@ object GLPrimitivesInterp extends LazyLogging {
       } yield new Primitive[F](
         vArray,
         draw = for {
+          _ <- gl30.bindVertexArray(vArray)
           _ <- gl20.useProgram(shaderProgram.ptr)
           _ <- gl11.drawArrays(GL11.GL_TRIANGLES, 0, 3)
         } yield (),

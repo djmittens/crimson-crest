@@ -103,10 +103,7 @@ object OpenGLInterpIO
   }
 
   def createVertexArrays(): IO[Int] = IO {
-//    GL45.glCreateVertexArrays()
-    val vao = GL30.glGenVertexArrays()
-    GL30.glBindVertexArray(vao)
-    vao
+    GL45.glCreateVertexArrays()
   }
 
 }
