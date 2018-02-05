@@ -85,6 +85,10 @@ object OpenGLInterpIO
     GL20.glDeleteProgram(program)
   }
 
+  def glVertexAttrib4fv(index: Int, v: Array[Float]): IO[Unit] = IO {
+    GL20.glVertexAttrib4fv(index, v)
+  }
+
   /**
     * These commands clear a specified buffer of a framebuffer to specified value(s). For glClearBuffer*, the framebuffer is the currently bound draw framebuffer object. For glClearNamedFramebuffer*, framebuffer is zero, indicating the default draw framebuffer, or the name of a framebuffer object. buffer and drawbuffer identify the buffer to clear.
     */

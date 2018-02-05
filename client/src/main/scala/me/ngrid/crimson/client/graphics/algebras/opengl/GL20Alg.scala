@@ -26,4 +26,6 @@ trait GL20Alg[F[_]] {
   def useProgram(program: Int): F[Unit]
 
   def deleteProgram(program: Int): F[Unit]
+
+  def glVertexAttrib4fv(index: Int, v: Array[Float]): F[Unit]
 }
