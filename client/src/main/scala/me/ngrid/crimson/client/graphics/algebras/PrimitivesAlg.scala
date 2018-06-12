@@ -6,3 +6,6 @@ trait PrimitivesAlg[F[_], ShaderProgram, Primitive] {
   def createTriangle(shader: ShaderProgram): F[Primitive]
 }
 
+object PrimitivesAlg {
+  case class Primitive[F[_]](vertexArrayPtr: Int, draw: F[Unit], delete: F[Unit])
+}

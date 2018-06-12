@@ -6,11 +6,11 @@ import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import me.ngrid.crimson.client.filesystem.interpreters.TextFileInterpIO
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.GLPrimitivesInterp.Primitive
+import me.ngrid.crimson.client.graphics.lwjgl.interpreters.GLPrimitivesInterpIO.Primitive
 import me.ngrid.crimson.client.graphics.algebras.RenderLoopAlg
 import me.ngrid.crimson.client.graphics.lwjgl.RunGlfwApp
 import me.ngrid.crimson.client.graphics.lwjgl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLPrimitivesInterp, GLShaderInterp, GlfwInterpIO, OpenGLInterpIO}
+import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLPrimitivesInterpIO, GL20ShaderInterpIO, GlfwInterpIO, OpenGLInterpIO}
 import org.lwjgl.opengl._
 import spire.implicits._
 import spire.math._
@@ -18,8 +18,8 @@ import spire.math._
 object HelloWorld extends LazyLogging {
   private val glfw = GlfwInterpIO
   private val gl = OpenGLInterpIO
-  private val primitives = GLPrimitivesInterp(gl) _
-  private val basicShader = new GLShaders(GLShaderInterp(gl))
+  private val primitives = GLPrimitivesInterpIO(gl) _
+  private val basicShader = new GLShaders(GL20ShaderInterpIO(gl))
   private val txt = TextFileInterpIO
 
   def main(args: Array[String]): Unit = {
