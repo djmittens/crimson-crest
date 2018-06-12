@@ -4,12 +4,19 @@ inThisBuild(Seq(
   scalaVersion := "2.12.4-bin-typelevel-4"
 ))
 
-lazy val `crimson-crest` = (project in file(".")).aggregate(client)
+lazy val `crimson-crest` = (project in file(".")).aggregate(client, sandbox)
 
 lazy val client = (project in file("client")).
   enablePlugins(ProjectPlugin).
   settings(
     //    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
+    libraryDependencies ++=
+      libgdx ++ cats ++ logging
+  )
+
+lazy val `fbx-format` = (project in file("fbx-format")).
+  enablePlugins(ProjectPlugin).
+  settings(
     libraryDependencies ++=
       libgdx ++ cats ++ logging
   )
