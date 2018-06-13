@@ -5,17 +5,17 @@ import me.ngrid.crimson.client.graphics.algebras.{RenderLoopAlg, WindowAlg}
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW._
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil.NULL
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import cats.implicits._
 
 object GlfwInterpIO extends WindowAlg[IO] {
   override type Window = Long
 
-  def init(): Unit = {
+  def init(): IO[Unit] = IO {
     // Setup an error callback. the default implementation will print the error message in System.err
     GLFWErrorCallback.createPrint(System.err).set()
 
@@ -30,7 +30,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
   }
 
-  def terminate(): Unit = {
+  def terminate(): IO[Unit] = IO {
     // Terminate GLFW and free the error callback
     glfwTerminate()
     glfwSetErrorCallback(null).free()
@@ -83,7 +83,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
       glfwDestroyWindow(window)
     }
 
-  override def renderLoop[State](window: Window, loop: RenderLoopAlg[IO, State]): IO[Unit] = IO.pure {
+  override def renderLoop(window: Window, loop: RenderLoopAlg[IO]): IO[Unit] = IO.pure {
     glfwMakeContextCurrent(window)
 
     // Enable v-sync
@@ -99,26 +99,44 @@ object GlfwInterpIO extends WindowAlg[IO] {
     // LWJGL detects the context that is current in the current thread,
     // creates the GLCapabilities instance and makes the OpenGL bindings available for use.
 
-    GL.createCapabilities()
+    //    GL.createCapabilities()
 
-    val state = loop.init().unsafeRunSync()
-    val render = loop.render(state)
+    def lp(st: loop.State): IO[Unit] = IO.suspend {
 
-    try {
       // Run the rendering loop until the user has attempted to close
       // the window or has pressed the ESCAPE key.
-      while (!glfwWindowShouldClose(window)) {
-        render.unsafeRunSync()
-
-        // swap the color buffers
-        glfwSwapBuffers(window)
-
-        // Poll for window events. The key callback above will only be invoked during this call.
-        glfwPollEvents()
-      }
-    } finally {
-      loop.terminate(state).unsafeRunSync()
+      if (!glfwWindowShouldClose(window))
+        loop.render(st) *> IO {
+          // swap the color buffers
+          glfwSwapBuffers(window)
+          // Poll for window events. The key callback above will only be invoked during this call.
+          glfwPollEvents()
+        } *> lp(st)
+      else
+        IO.unit
     }
+
+    loop.init().bracket(lp)(loop.terminate)
+    // TODO: figure out maybe we can just encapuslate the loop, but the recursive thing seems like its pretty good as well.
+
+    //    val state = loop.init().unsafeRunSync()
+    //    val render = loop.render(state)
+    //
+    //    try {
+    //      // Run the rendering loop until the user has attempted to close
+    //      // the window or has pressed the ESCAPE key.
+    //      while (!glfwWindowShouldClose(window)) {
+    //        render.unsafeRunSync()
+    //
+    //        // swap the color buffers
+    //        glfwSwapBuffers(window)
+    //
+    //        // Poll for window events. The key callback above will only be invoked during this call.
+    //        glfwPollEvents()
+    //      }
+    //    } finally {
+    //      loop.terminate(state).unsafeRunSync()
+    //    }
   }
 
   override def interceptClose(w: Window, f: Window => Unit): IO[Unit] = ???

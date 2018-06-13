@@ -7,25 +7,25 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import me.ngrid.crimson.client.filesystem.interpreters.TextFileInterpIO
 import me.ngrid.crimson.client.graphics.lwjgl.interpreters.GLPrimitivesInterpIO.Primitive
-import me.ngrid.crimson.client.graphics.algebras.RenderLoopAlg
+import me.ngrid.crimson.client.graphics.algebras.{PrimitivesAlg, RenderLoopAlg}
 import me.ngrid.crimson.client.graphics.lwjgl.RunGlfwApp
-import me.ngrid.crimson.client.graphics.lwjgl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLPrimitivesInterpIO, GL20ShaderInterpIO, GlfwInterpIO, OpenGLInterpIO}
+import me.ngrid.crimson.client.graphics.lwjgl.algebras.GLShaderAlg
+//import me.ngrid.crimson.client.graphics.lwjgl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
+import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLPrimitivesInterpIO, GL20ShaderInterpIO, GlfwInterpIO}
 import org.lwjgl.opengl._
 import spire.implicits._
 import spire.math._
 
 object HelloWorld extends LazyLogging {
   private val glfw = GlfwInterpIO
-  private val gl = OpenGLInterpIO
-  private val primitives = GLPrimitivesInterpIO(gl) _
-  private val basicShader = new GLShaders(GL20ShaderInterpIO(gl))
+  private val primitives = GLPrimitivesInterpIO _
+  private val basicShader = new GLShaders(GL20ShaderInterpIO)
   private val txt = TextFileInterpIO
 
   def main(args: Array[String]): Unit = {
 
     // (list(shaders), linked program, vertex array object)
-    type State = (Option[GLShaderProgram[IO]], Option[Primitive[IO]])
+    type State = (Option[GLShaderAlg.Program[IO]], Option[PrimitivesAlg.Primitive[IO]])
 
     object gameloop extends RenderLoopAlg[IO, State] {
       override def init(): IO[State] = for {
@@ -101,7 +101,7 @@ class GLShaders[F[_] : Monad, Err](glShader: GLShaderAlg[F, Err]) {
   // This is a single vertex, in the middle of our clip space (??? what the heck does that mean)
   // which is the coordinate system expected by the next stage of the OpenGL pipeline.
 
-  def basicShaderProgram(vertexShader: String, fragmentShader: String): F[Either[Err, GLShaderProgram[F]]] = (for {
+  def basicShaderProgram(vertexShader: String, fragmentShader: String): F[Either[Err, GLShaderAlg.Program[F]]] = (for {
     vs <- EitherT(glShader.vertex(vertexShader))
     fs <- EitherT(glShader.fragment(fragmentShader))
     //FIXME if there are failures past this point, its possible, to leak shaders, we need to clean this
@@ -110,7 +110,7 @@ class GLShaders[F[_] : Monad, Err](glShader: GLShaderAlg[F, Err]) {
   } yield pg).value
 
 
-  def deleteShaders(sh: List[GLShader[F]]): F[Unit] = {
+  def deleteShaders(sh: List[GLShaderAlg.Shader[F]]): F[Unit] = {
     sh.map(x => x.delete).sequence.map(_ => ())
   }
 }

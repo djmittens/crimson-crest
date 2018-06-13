@@ -11,11 +11,11 @@ import org.lwjgl.opengl._
 object GLPrimitivesInterpIO extends LazyLogging {
   type Algebra[F[_]] = PrimitivesAlg[F, GLShaderAlg.Program[F], Primitive[F]]
 
-  def apply(capabilities: GLCapabilities): Either[String, Algebra[IO]] = {
+  def apply(capabilities: GLCapabilities): Option[Algebra[IO]] = {
     if (capabilities.OpenGL45) {
-      Gl45.asRight
+      Gl45.some
     } else {
-      Left("this hardware sucks")
+      none
     }
   }
 

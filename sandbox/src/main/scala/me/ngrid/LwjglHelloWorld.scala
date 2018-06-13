@@ -1,7 +1,7 @@
 package me.ngrid
 
 import me.ngrid.crimson.client.graphics.lwjgl.RunGlfwApp
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, OpenGLInterpIO, SimpleLoopGL}
+import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GlfwInterpIO, OpenGLInterpIO, GLSimpleLoopIO}
 import org.lwjgl._
 import org.lwjgl.opengl.GL11._
 //import cats.syntax._
@@ -17,7 +17,7 @@ object LwjglHelloWorld {
     RunGlfwApp {
       for {
         w <- glfw.createOpenGL()
-        _ <- glfw.renderLoop(w, new SimpleLoopGL(gl)(
+        _ <- glfw.renderLoop(w, new GLSimpleLoopIO(gl)(
           gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         ))
         _ <- glfw.close(w)
