@@ -4,7 +4,7 @@ import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import me.ngrid.crimson.api.graphics.PrimitivesAlg
-import me.ngrid.crimson.api.graphics.algebras.PrimitivesAlg.Primitive
+import me.ngrid.crimson.api.graphics.PrimitivesAlg.Primitive
 import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
 import org.lwjgl.opengl._
 
@@ -26,7 +26,7 @@ object GLPrimitivesInterpIO extends LazyLogging {
     override def createPoint(shader: GLShaderAlg.Program[IO], size: Float): IO[Primitive[IO]] = ???
 
     override def createTriangle(shader: GLShaderAlg.Program[IO]): IO[Primitive[IO]] = {
-
+      ???
     }
   }
 

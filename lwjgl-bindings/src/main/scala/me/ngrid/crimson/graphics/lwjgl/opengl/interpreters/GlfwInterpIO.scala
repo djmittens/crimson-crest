@@ -1,7 +1,6 @@
 package me.ngrid.crimson.graphics.lwjgl.opengl.interpreters
 
 import cats.effect.IO
-import me.ngrid.crimson.api.graphics.algebras.WindowAlg
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW._
 import org.lwjgl.glfw.GLFWErrorCallback
