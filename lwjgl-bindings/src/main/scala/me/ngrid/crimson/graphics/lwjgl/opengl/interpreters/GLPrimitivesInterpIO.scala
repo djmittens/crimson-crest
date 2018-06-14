@@ -1,11 +1,11 @@
-package me.ngrid.crimson.client.graphics.lwjgl.interpreters
+package me.ngrid.crimson.graphics.lwjgl.opengl.interpreters
 
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
-import me.ngrid.crimson.client.graphics.algebras.PrimitivesAlg
-import me.ngrid.crimson.client.graphics.algebras.PrimitivesAlg.Primitive
-import me.ngrid.crimson.client.graphics.lwjgl.algebras.GLShaderAlg
+import me.ngrid.crimson.api.graphics.PrimitivesAlg
+import me.ngrid.crimson.api.graphics.algebras.PrimitivesAlg.Primitive
+import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
 import org.lwjgl.opengl._
 
 object GLPrimitivesInterpIO extends LazyLogging {
@@ -14,8 +14,19 @@ object GLPrimitivesInterpIO extends LazyLogging {
   def apply(capabilities: GLCapabilities): Option[Algebra[IO]] = {
     if (capabilities.OpenGL45) {
       Gl45.some
-    } else {
+    } else if (capabilities.OpenGL33) {
+      Gl33.some
+    }
+    else {
       none
+    }
+  }
+
+  object Gl33 extends Algebra[IO] {
+    override def createPoint(shader: GLShaderAlg.Program[IO], size: Float): IO[Primitive[IO]] = ???
+
+    override def createTriangle(shader: GLShaderAlg.Program[IO]): IO[Primitive[IO]] = {
+
     }
   }
 

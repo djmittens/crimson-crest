@@ -1,7 +1,7 @@
-package me.ngrid.crimson.client.graphics.lwjgl.interpreters
+package me.ngrid.crimson.graphics.lwjgl.opengl.interpreters
 
 import cats.effect.IO
-import me.ngrid.crimson.client.graphics.algebras.{RenderLoopAlg, WindowAlg}
+import me.ngrid.crimson.api.graphics.algebras.WindowAlg
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW._
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -11,6 +11,7 @@ import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import me.ngrid.crimson.api.graphics.{RenderLoopAlg, WindowAlg}
 //import org.lwjgl.opengl.GL
 
 object GlfwInterpIO extends WindowAlg[IO] {

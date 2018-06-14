@@ -1,74 +1,84 @@
 
 inThisBuild(Seq(
+  organization := "me.ngrid",
   scalaOrganization := "org.typelevel",
   scalaVersion := "2.12.4-bin-typelevel-4"
 ))
 
-lazy val `crimson-crest` = (project in file(".")).aggregate(client, sandbox)
-
-lazy val client = (project in file("client")).
-  enablePlugins(ProjectPlugin).
-  settings(
-    //    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
-    libraryDependencies ++=
-      libgdx ++ cats ++ logging
-  )
-
-lazy val `fbx-format` = (project in file("fbx-format")).
-  enablePlugins(ProjectPlugin).
-  settings(
-    libraryDependencies ++=
-      libgdx ++ cats ++ logging
-  )
+lazy val `crimson-crest` = (project in file(".")).aggregate(sandbox)
 
 lazy val sandbox = (project in file("sandbox")).
   enablePlugins(ProjectPlugin).
   settings(
-
+    name := "crimson-sandbox",
+    description := "Safe space to play with the engine features",
     //This is necessary for lwjgl to create a window.
     // Eg. the requirement of the thread being the original one that the
     // JVM gets from the OS, when the initial process starts
     fork := true,
     run / javaOptions += "-XstartOnFirstThread"
-  ).dependsOn(client)
+  ).dependsOn(api, `lwjgl-bindings`)
+
+
+lazy val `file-system` = (project in file("file-system")).
+  enablePlugins(ProjectPlugin).
+  settings(
+    name := "crimson-fs",
+    description := "File system for working with files inside the graphics engine",
+    //    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
+    libraryDependencies ++=
+      cats ++ logging
+  )
 
 val lwjglVersion = "3.1.6"
+lazy val `lwjgl-bindings` = (project in file("lwjgl-bindings")).
+  enablePlugins(ProjectPlugin).
+  settings(
+    name := "crimson-lwjgl",
+    description := "bindings",
 
-val libgdx = Seq(
-  "org.lwjgl" % "lwjgl" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-assimp" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-bgfx" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-egl" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-glfw" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-jawt" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-jemalloc" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-lmdb" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-lz4" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-nfd" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-nuklear" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-odbc" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-openal" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-opencl" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-opengl" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-opengles" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-openvr" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-ovr" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-par" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-remotery" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-rpmalloc" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-sse" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-stb" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-tinyexr" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-tinyfd" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-tootle" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-vulkan" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-xxhash" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-yoga" % lwjglVersion,
-  "org.lwjgl" % "lwjgl-zstd" % lwjglVersion,
-) ++
-  Seq("natives-windows", "natives-macos", "natives-linux").
-    flatMap(lwjglNatives(lwjglVersion, _))
+    libraryDependencies ++=
+      cats ++ logging,
+
+    libraryDependencies ++= Seq(
+      "org.lwjgl" % "lwjgl" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-assimp" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-bgfx" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-egl" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-glfw" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-jawt" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-jemalloc" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-lmdb" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-lz4" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-nanovg" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-nfd" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-nuklear" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-odbc" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-openal" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-opencl" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-opengl" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-opengles" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-openvr" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-ovr" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-par" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-remotery" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-rpmalloc" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-sse" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-stb" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-tinyexr" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-tinyfd" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-tootle" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-vulkan" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-xxhash" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-yoga" % lwjglVersion,
+      "org.lwjgl" % "lwjgl-zstd" % lwjglVersion,
+    ) ++
+      Seq("natives-windows", "natives-macos", "natives-linux").
+        flatMap(lwjglNatives(lwjglVersion, _))
+  ).dependsOn(api)
+
+lazy val `fbx-format` = (project in file("fbx-format")).
+  enablePlugins(ProjectPlugin)
 
 def lwjglNatives(lwjglVersion: String, lwjglNatives: String) = Seq(
   "org.lwjgl" % "lwjgl" % lwjglVersion classifier lwjglNatives,
@@ -98,6 +108,13 @@ def lwjglNatives(lwjglVersion: String, lwjglNatives: String) = Seq(
   "org.lwjgl" % "lwjgl-yoga" % lwjglVersion classifier lwjglNatives,
   "org.lwjgl" % "lwjgl-zstd" % lwjglVersion classifier lwjglNatives,
 )
+
+lazy val api = (project in file("api")).
+  enablePlugins(ProjectPlugin).
+  settings(
+    name := "crimson-api",
+    description := "Engine api"
+  )
 
 val catsVersion = "1.0.1"
 

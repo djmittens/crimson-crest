@@ -1,4 +1,4 @@
-package me.ngrid.crimson.client.graphics.algebras
+package me.ngrid.crimson.api.graphics
 
 trait BackgroundAlg[F[_]] {
   def setBackgroundToBlack(): F[Unit]

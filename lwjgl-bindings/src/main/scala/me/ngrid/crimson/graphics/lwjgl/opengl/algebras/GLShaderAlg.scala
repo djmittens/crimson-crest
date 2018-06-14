@@ -1,6 +1,6 @@
-package me.ngrid.crimson.client.graphics.lwjgl.algebras
+package me.ngrid.crimson.graphics.lwjgl.opengl.algebras
 
-import me.ngrid.crimson.client.graphics.lwjgl.algebras.GLShaderAlg.{Shader, Program}
+import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg.{Shader, Program}
 
 trait GLShaderAlg[F[_], Err] {
   def vertex(source: String): F[Either[Err, Shader[F]]]

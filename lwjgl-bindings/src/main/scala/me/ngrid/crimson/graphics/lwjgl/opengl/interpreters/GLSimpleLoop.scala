@@ -1,8 +1,8 @@
-package me.ngrid.crimson.client.graphics.lwjgl.interpreters
+package me.ngrid.crimson.graphics.lwjgl.opengl.interpreters
 
 import cats.Monad
 import cats.implicits._
-import me.ngrid.crimson.client.graphics.algebras.RenderLoopAlg
+import me.ngrid.crimson.api.graphics.RenderLoopAlg
 import org.lwjgl.opengl.{GL, GLCapabilities}
 
 case class GLSimpleLoop[F[_]: Monad, Context]

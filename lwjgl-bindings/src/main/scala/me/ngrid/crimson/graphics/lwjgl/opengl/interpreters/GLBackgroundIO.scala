@@ -1,7 +1,7 @@
-package me.ngrid.crimson.client.graphics.lwjgl.interpreters
+package me.ngrid.crimson.graphics.lwjgl.opengl.interpreters
 
 import cats.effect.IO
-import me.ngrid.crimson.client.graphics.algebras.BackgroundAlg
+import me.ngrid.crimson.api.graphics.BackgroundAlg
 import org.lwjgl.opengl.{GL11, GLCapabilities}
 
 object GLBackgroundIO {

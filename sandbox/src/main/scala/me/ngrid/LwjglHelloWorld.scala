@@ -1,8 +1,8 @@
 package me.ngrid
 
 import cats.effect.IO
-import me.ngrid.crimson.client.graphics.algebras.RenderLoopAlg
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLSimpleLoop, GlfwInterpIO}
+import me.ngrid.crimson.api.graphics.RenderLoopAlg
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GlfwInterpIO}
 import org.lwjgl._
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11._

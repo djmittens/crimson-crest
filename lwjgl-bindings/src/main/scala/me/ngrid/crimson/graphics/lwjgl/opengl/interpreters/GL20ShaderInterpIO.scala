@@ -1,9 +1,9 @@
-package me.ngrid.crimson.client.graphics.lwjgl.interpreters
+package me.ngrid.crimson.graphics.lwjgl.opengl.interpreters
 
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
-import me.ngrid.crimson.client.graphics.lwjgl.algebras.GLShaderAlg
+import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
 import org.lwjgl.opengl.GL20
 
 object GL20ShaderInterpIO extends GLShaderAlg[IO, String] with LazyLogging {

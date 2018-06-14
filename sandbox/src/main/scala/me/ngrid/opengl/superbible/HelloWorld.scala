@@ -4,21 +4,21 @@ import cats.Monad
 import cats.data.EitherT
 import cats.effect.IO
 import cats.implicits._
-import me.ngrid.crimson.client.graphics.algebras.RenderLoopAlg.Aux
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLSimpleLoop, GlfwInterpIO}
+import me.ngrid.crimson.api.graphics.algebras.RenderLoopAlg.Aux
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GlfwInterpIO}
 import org.lwjgl.opengl.{GL11, GL30}
 import spire.math._
 import spire.implicits._
 //import cats.syntax._
 import com.typesafe.scalalogging.LazyLogging
-import me.ngrid.crimson.client.filesystem.interpreters.TextFileInterpIO
-import me.ngrid.crimson.client.graphics.algebras.{PrimitivesAlg, RenderLoopAlg}
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO}
+import me.ngrid.crimson.api.filesystem.interpreters.TextFileInterpIO
+import me.ngrid.crimson.api.graphics.algebras.RenderLoopAlg
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO}
 import org.lwjgl.opengl.GLCapabilities
-//import me.ngrid.crimson.client.filesystem.interpreters.TextFileInterpIO
-import me.ngrid.crimson.client.graphics.lwjgl.algebras.GLShaderAlg
-//import me.ngrid.crimson.client.graphics.lwjgl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
-//import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO, GlfwInterpIO}
+//import me.ngrid.crimson.api.filesystem.interpreters.TextFileInterpIO
+import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
+//import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
+//import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO, GlfwInterpIO}
 
 object HelloWorld extends LazyLogging {
   private val glfw = GlfwInterpIO
@@ -48,16 +48,15 @@ object HelloWorld extends LazyLogging {
 
     } yield pg.product(triangle),
 
-    _render = {
-      case a @ Some((_, triangle)) =>
-        IO {
-          val color = Array(nextColor(System.nanoTime(), cos[Double]), 0.0f, nextColor(System.nanoTime(), sin[Double]), 0.0f, 1.0f)
-          GL30.glClearBufferfv(GL11.GL_COLOR, 0, color)
-        } *> triangle.draw *> IO(Thread.sleep(200)) *> IO.pure(a)
+    _render = x => IO {
+      val color = Array(nextColor(System.nanoTime(), cos[Double]), 0.0f, nextColor(System.nanoTime(), sin[Double]), 0.0f, 1.0f)
+      GL30.glClearBufferfv(GL11.GL_COLOR, 0, color)
+    } *> (x match {
+      case a@Some((_, triangle)) =>
+        triangle.draw *> IO(Thread.sleep(200)) *> IO.pure(a)
 
       case other => IO.pure(other)
-
-    },
+    }),
     _terminate = {
       case Some((x, y)) => x.delete *> y.delete
       case None => IO.unit
@@ -69,7 +68,7 @@ object HelloWorld extends LazyLogging {
     val game = for {
       _ <- glfw.init()
       w <- glfw.createOpenGL()
-      _ <- glfw.renderLoop(w, GLSimpleLoop(gameLoop) )
+      _ <- glfw.renderLoop(w, GLSimpleLoop(gameLoop))
       _ <- glfw.close(w)
     } yield ()
 
