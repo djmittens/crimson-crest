@@ -5,7 +5,7 @@ trait WindowAlg[F[_]] {
 
   def init(): F[Unit]
 
-  def createOpenGL(): F[Window]
+  def createOpenGLWindow(): F[Window]
 
   def close(w: Window): F[Unit]
 

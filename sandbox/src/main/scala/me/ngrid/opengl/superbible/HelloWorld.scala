@@ -66,7 +66,7 @@ object HelloWorld extends LazyLogging {
 
     val game = for {
       _ <- glfw.init()
-      w <- glfw.createOpenGL()
+      w <- glfw.createOpenGLWindow()
       _ <- glfw.renderLoop(w, GLSimpleLoop(gameLoop))
       _ <- glfw.close(w)
     } yield ()

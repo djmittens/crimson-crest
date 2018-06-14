@@ -19,7 +19,7 @@ object LwjglHelloWorld {
 
     val game = for {
       _ <- glfw.init()
-      w <- glfw.createOpenGL()
+      w <- glfw.createOpenGLWindow()
       _ <- glfw.renderLoop(w, GLSimpleLoop[IO, Unit] { _ =>
         RenderLoopAlg.static(
           _init = IO {
