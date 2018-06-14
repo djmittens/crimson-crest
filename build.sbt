@@ -24,7 +24,12 @@ lazy val `fbx-format` = (project in file("fbx-format")).
 lazy val sandbox = (project in file("sandbox")).
   enablePlugins(ProjectPlugin).
   settings(
-    fork := true
+
+    //This is necessary for lwjgl to create a window.
+    // Eg. the requirement of the thread being the original one that the
+    // JVM gets from the OS, when the initial process starts
+    fork := true,
+    run / javaOptions += "-XstartOnFirstThread"
   ).dependsOn(client)
 
 val lwjglVersion = "3.1.5"

@@ -11,7 +11,7 @@ import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
-import org.lwjgl.opengl.GL
+//import org.lwjgl.opengl.GL
 
 object GlfwInterpIO extends WindowAlg[IO] {
   override type Window = Long
@@ -103,7 +103,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
       // creates the GLCapabilities instance and makes the OpenGL bindings available for use.
 
       //TODO: why is it that i need to call this immediately or twice? this makes like no sense.
-      GL.createCapabilities()
+//      GL.createCapabilities()
     }
 
 

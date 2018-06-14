@@ -1,7 +1,8 @@
 package me.ngrid
 
 import cats.effect.IO
-import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLSimpleLoopIO, GlfwInterpIO}
+import me.ngrid.crimson.client.graphics.algebras.RenderLoopAlg
+import me.ngrid.crimson.client.graphics.lwjgl.interpreters.{GLSimpleLoop, GlfwInterpIO}
 import org.lwjgl._
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11._
@@ -19,18 +20,23 @@ object LwjglHelloWorld {
     val game = for {
       _ <- glfw.init()
       w <- glfw.createOpenGL()
-      _ <- glfw.renderLoop(w, GLSimpleLoopIO[Unit](
-        init = _ => IO.unit,
-        render = _ => _ => IO {
-          GL11.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-          ()
-        },
-        terminate = _ => _ => IO.unit
-      ))
+      _ <- glfw.renderLoop(w, GLSimpleLoop[IO, Unit] { _ =>
+        RenderLoopAlg.static(
+          _init = IO {
+            // Set the background color to red.
+            GL11.glClearColor(1.0f, 0f, 0f, 0f)
+          },
+          _render = IO {
+            // Clear our depth / color buffers i guess
+            GL11.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+          },
+          _terminate = IO.unit
+        )
+      })
       _ <- glfw.close(w)
     } yield ()
 
-//    implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(r => r.run())
+    //    implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(r => r.run())
 
     println(game.attempt.unsafeRunSync())
     ()
