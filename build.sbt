@@ -1,4 +1,3 @@
-
 inThisBuild(Seq(
   organization := "me.ngrid",
   scalaOrganization := "org.typelevel",
@@ -17,18 +16,27 @@ lazy val sandbox = (project in file("sandbox")).
     // JVM gets from the OS, when the initial process starts
     fork := true,
     run / javaOptions += "-XstartOnFirstThread"
-  ).dependsOn(api, `lwjgl-bindings`)
+  ).dependsOn(api, `graphics-engine`, `lwjgl-bindings`, `asset-engine`)
 
-
-lazy val `file-system` = (project in file("file-system")).
+lazy val `asset-engine` = (project in file("asset-engine")).
   enablePlugins(ProjectPlugin).
   settings(
-    name := "crimson-fs",
-    description := "File system for working with files inside the graphics engine",
+    name := "crimson-assets",
+    description := "Asset system for working with different storage formats",
     //    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
     libraryDependencies ++=
       cats ++ logging
-  )
+  ).dependsOn(api)
+
+lazy val `graphics-engine` = (project in file("graphics-engine")).
+  enablePlugins(ProjectPlugin).
+  settings(
+    name := "crimson-assets",
+    description := "Asset system for working with different storage formats",
+    //    crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4", "2.13.0-M2"),
+    libraryDependencies ++=
+      cats ++ logging
+  ).dependsOn(api)
 
 val lwjglVersion = "3.1.6"
 lazy val `lwjgl-bindings` = (project in file("lwjgl-bindings")).
@@ -76,9 +84,6 @@ lazy val `lwjgl-bindings` = (project in file("lwjgl-bindings")).
       Seq("natives-windows", "natives-macos", "natives-linux").
         flatMap(lwjglNatives(lwjglVersion, _))
   ).dependsOn(api)
-
-lazy val `fbx-format` = (project in file("fbx-format")).
-  enablePlugins(ProjectPlugin)
 
 def lwjglNatives(lwjglVersion: String, lwjglNatives: String) = Seq(
   "org.lwjgl" % "lwjgl" % lwjglVersion classifier lwjglNatives,

@@ -5,13 +5,13 @@ import cats.data.EitherT
 import cats.effect.IO
 import cats.implicits._
 import me.ngrid.crimson.api.graphics.algebras.RenderLoopAlg.Aux
+import me.ngrid.crimson.assets.TextFileInterpIO
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GlfwInterpIO}
 import org.lwjgl.opengl.{GL11, GL30}
 import spire.math._
 import spire.implicits._
 //import cats.syntax._
 import com.typesafe.scalalogging.LazyLogging
-import me.ngrid.crimson.api.filesystem.interpreters.TextFileInterpIO
 import me.ngrid.crimson.api.graphics.algebras.RenderLoopAlg
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO}
 import org.lwjgl.opengl.GLCapabilities

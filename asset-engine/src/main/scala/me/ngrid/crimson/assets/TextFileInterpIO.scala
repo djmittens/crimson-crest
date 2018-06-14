@@ -1,7 +1,7 @@
-package me.ngrid.crimson.api.filesystem.interpreters
+package me.ngrid.crimson.assets
 
 import cats.effect.IO
-import me.ngrid.crimson.api.filesystem.algebra.TextFileAlg
+import me.ngrid.crimson.api.assets.TextFileAlg
 
 import scala.io.Source
 
