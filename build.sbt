@@ -22,7 +22,10 @@ lazy val `fbx-format` = (project in file("fbx-format")).
   )
 
 lazy val sandbox = (project in file("sandbox")).
-  enablePlugins(ProjectPlugin).dependsOn(client)
+  enablePlugins(ProjectPlugin).
+  settings(
+    fork := true
+  ).dependsOn(client)
 
 val lwjglVersion = "3.1.5"
 

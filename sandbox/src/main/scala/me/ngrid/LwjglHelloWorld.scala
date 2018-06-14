@@ -6,9 +6,9 @@ import org.lwjgl._
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11._
 
-import scala.concurrent.ExecutionContext
+//import scala.concurrent.ExecutionContext
 //import cats.syntax._
-import cats.implicits._
+//import cats.implicits._
 
 object LwjglHelloWorld {
   def main(args: Array[String]): Unit = {
@@ -17,6 +17,7 @@ object LwjglHelloWorld {
     val glfw = GlfwInterpIO
 
     val game = for {
+      _ <- glfw.init()
       w <- glfw.createOpenGL()
       _ <- glfw.renderLoop(w, GLSimpleLoopIO[Unit](
         init = _ => IO.unit,
@@ -29,12 +30,9 @@ object LwjglHelloWorld {
       _ <- glfw.close(w)
     } yield ()
 
-    implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(r => r.run())
+//    implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(r => r.run())
 
-    (IO.shift *> game).attempt.unsafeRunSync() match {
-      case Left(e) => println(s"Failed with an error $e")
-      case Right(v) => println(s"Success $v")
-    }
+    game.unsafeRunSync()
     ()
   }
 }
