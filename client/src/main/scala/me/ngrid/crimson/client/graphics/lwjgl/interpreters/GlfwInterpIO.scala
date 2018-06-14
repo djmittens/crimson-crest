@@ -116,7 +116,9 @@ object GlfwInterpIO extends WindowAlg[IO] {
         IO.unit
     }
 
-    loop.init().bracket(lp)(loop.terminate)
+    loop.init().bracket(use = lp)( release = loop.terminate)
+
+    ()
     // TODO: figure out maybe we can just encapuslate the loop, but the recursive thing seems like its pretty good as well.
 
     //    val state = loop.init().unsafeRunSync()

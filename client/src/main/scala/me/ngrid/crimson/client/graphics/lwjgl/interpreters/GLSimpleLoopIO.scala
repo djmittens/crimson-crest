@@ -9,7 +9,7 @@ object GLSimpleLoopIO {
              init: GLCapabilities => IO[Context],
              render: GLCapabilities => Context => IO[Context],
              terminate: GLCapabilities => Context => IO[Unit]
-           ): IO[RenderLoopAlg[IO]{type State = Context}] = IO {
+           ): RenderLoopAlg[IO]{type State = Context} = {
     lazy val _gl = GL.createCapabilities()
     lazy val _rnd = render(_gl)
     lazy val _tmte = terminate(_gl)
