@@ -3,6 +3,8 @@ package me.ngrid.crimson.client.graphics.algebras
 trait WindowAlg[F[_]] {
   type Window
 
+  def init(): F[Unit]
+
   def createOpenGL(): F[Window]
 
   def close(w: Window): F[Unit]

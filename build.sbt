@@ -32,7 +32,7 @@ lazy val sandbox = (project in file("sandbox")).
     run / javaOptions += "-XstartOnFirstThread"
   ).dependsOn(client)
 
-val lwjglVersion = "3.1.5"
+val lwjglVersion = "3.1.6"
 
 val libgdx = Seq(
   "org.lwjgl" % "lwjgl" % lwjglVersion,
