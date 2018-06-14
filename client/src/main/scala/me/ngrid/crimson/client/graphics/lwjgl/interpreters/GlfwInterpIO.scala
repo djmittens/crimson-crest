@@ -11,6 +11,7 @@ import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import org.lwjgl.opengl.GL
 
 object GlfwInterpIO extends WindowAlg[IO] {
   override type Window = Long
@@ -83,26 +84,30 @@ object GlfwInterpIO extends WindowAlg[IO] {
       glfwDestroyWindow(window)
     }
 
-  override def renderLoop(window: Window, loop: RenderLoopAlg[IO]): IO[Unit] = IO.pure {
-    glfwMakeContextCurrent(window)
+  override def renderLoop(window: Window, loop: RenderLoopAlg[IO]): IO[Unit] = {
 
-    // Enable v-sync
-    glfwSwapInterval(1)
-    // Make the window visible
-    glfwShowWindow(window)
+    val initGlfw = IO {
 
-    // Make the OpenGL context current
-    //        glfwMakeContextCurrent(window)
+      // Make the OpenGL context current
+      //        glfwMakeContextCurrent(window)
+      glfwMakeContextCurrent(window)
 
-    // This line is critical for LWJGL's interoperation with GLFW's
-    // OpenGL context, or any context that is managed externally.
-    // LWJGL detects the context that is current in the current thread,
-    // creates the GLCapabilities instance and makes the OpenGL bindings available for use.
+      // Enable v-sync
+      glfwSwapInterval(1)
+      // Make the window visible
+      glfwShowWindow(window)
 
-    //    GL.createCapabilities()
+      // This line is critical for LWJGL's interoperation with GLFW's
+      // OpenGL context, or any context that is managed externally.
+      // LWJGL detects the context that is current in the current thread,
+      // creates the GLCapabilities instance and makes the OpenGL bindings available for use.
+
+      //TODO: why is it that i need to call this immediately or twice? this makes like no sense.
+      GL.createCapabilities()
+    }
+
 
     def lp(st: loop.State): IO[Unit] = IO.suspend {
-
       // Run the rendering loop until the user has attempted to close
       // the window or has pressed the ESCAPE key.
       if (!glfwWindowShouldClose(window))
@@ -116,9 +121,8 @@ object GlfwInterpIO extends WindowAlg[IO] {
         IO.unit
     }
 
-    loop.init().bracket(use = lp)( release = loop.terminate)
+    initGlfw *> loop.init().bracket(use = lp)( release = loop.terminate)
 
-    ()
     // TODO: figure out maybe we can just encapuslate the loop, but the recursive thing seems like its pretty good as well.
 
     //    val state = loop.init().unsafeRunSync()

@@ -32,7 +32,7 @@ object LwjglHelloWorld {
 
 //    implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(r => r.run())
 
-    game.unsafeRunSync()
+    println(game.attempt.unsafeRunSync())
     ()
   }
 }
