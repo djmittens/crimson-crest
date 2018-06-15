@@ -1,5 +1,5 @@
 package me.ngrid.crimson.api.graphics
 
-class ViewportAlg {
-
+trait ViewportAlg[F[_]] {
+  def setBackgroundColor(red: Float, green: Float, blue: Float, alpha: Float): F[Unit]
 }

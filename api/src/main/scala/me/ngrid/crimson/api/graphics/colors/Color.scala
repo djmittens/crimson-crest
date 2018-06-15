@@ -1,5 +1,11 @@
 package me.ngrid.crimson.api.graphics.colors
 
-class Color {
+/**
+  * TBD
+  */
+trait Color {}
+
+object Color {
 
 }
+
