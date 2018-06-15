@@ -11,6 +11,7 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
 import me.ngrid.crimson.api.graphics.{RenderLoopAlg, WindowAlg}
+import org.lwjgl.opengl.GL11
 //import org.lwjgl.opengl.GL
 
 object GlfwInterpIO extends WindowAlg[IO] {
@@ -21,14 +22,9 @@ object GlfwInterpIO extends WindowAlg[IO] {
     GLFWErrorCallback.createPrint(System.err).set()
 
     // Initialize GLFW. Most GLFW functions will not work before doing this.
+    //TODO: is there a way to read the error from glfw?
     if (!glfwInit())
       throw new IllegalStateException(" Unable to initialize GLFW")
-
-
-    // Configure GLFW
-    glfwDefaultWindowHints() // optional, the current window hints are already the default
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
   }
 
   def terminate(): IO[Unit] = IO {
@@ -37,10 +33,24 @@ object GlfwInterpIO extends WindowAlg[IO] {
     glfwSetErrorCallback(null).free()
   }
 
-  override def createOpenGL(): IO[Window] = IO {
+  //TODO: probably need to decompose this. a lot of stuff going on in here
+  //TODO: figure out how to fit glViewport and all that jazz with this setup, eg: Callbacks!
+  override def createOpenGLWindow(version: WindowAlg.OpenGLApiVersion, settings: WindowAlg.WindowSettings): IO[Window] = IO {
+
+    // Configure GLFW
+    glfwDefaultWindowHints() // optional, the current window hints are already the default
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
+
+    // TODO: probably need an ADT for this, obviously would break the 4.5 examples, but we are ok for now
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.major)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minor)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL11.GL_TRUE)
+
     // Create the window
     //TODO: Add configuration for creating a window.
-    val window = glfwCreateWindow(300, 300, "Hello World!", NULL, NULL)
+    val window = glfwCreateWindow(settings.width, settings.height, settings.title, NULL, NULL)
     if (window == NULL)
       throw new RuntimeException("Failed to create the GLFW window")
 
@@ -84,7 +94,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
       glfwDestroyWindow(window)
     }
 
-  override def renderLoop(window: Window, loop: RenderLoopAlg[IO]): IO[Unit] = {
+  override def renderLoop(window: Window)(loop: RenderLoopAlg[IO]): IO[Unit] = {
 
     val initGlfw = IO {
 
@@ -122,30 +132,9 @@ object GlfwInterpIO extends WindowAlg[IO] {
     }
 
     initGlfw *> loop.init().bracket(use = lp)( release = loop.terminate)
-
-    // TODO: figure out maybe we can just encapuslate the loop, but the recursive thing seems like its pretty good as well.
-
-    //    val state = loop.init().unsafeRunSync()
-    //    val render = loop.render(state)
-    //
-    //    try {
-    //      // Run the rendering loop until the user has attempted to close
-    //      // the window or has pressed the ESCAPE key.
-    //      while (!glfwWindowShouldClose(window)) {
-    //        render.unsafeRunSync()
-    //
-    //        // swap the color buffers
-    //        glfwSwapBuffers(window)
-    //
-    //        // Poll for window events. The key callback above will only be invoked during this call.
-    //        glfwPollEvents()
-    //      }
-    //    } finally {
-    //      loop.terminate(state).unsafeRunSync()
-    //    }
   }
 
-  override def interceptClose(w: Window, f: Window => Unit): IO[Unit] = ???
+  override def interceptClose(w: Window)(f: Window => Unit): IO[Unit] = ???
 
   def tryResource[T <: AutoCloseable, U](res: => T)(f: T => U): Try[U] = {
     try {
