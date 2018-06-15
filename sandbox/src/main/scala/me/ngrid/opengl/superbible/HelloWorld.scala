@@ -4,7 +4,7 @@ import cats.Monad
 import cats.data.EitherT
 import cats.effect.IO
 import cats.implicits._
-import me.ngrid.crimson.api.graphics.{RenderLoopAlg, PrimitivesAlg}
+import me.ngrid.crimson.api.graphics.{PrimitivesAlg, RenderLoopAlg, WindowAlg}
 import me.ngrid.crimson.assets.TextFileInterpIO
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GlfwInterpIO}
 import org.lwjgl.opengl.{GL11, GL30}
@@ -66,8 +66,12 @@ object HelloWorld extends LazyLogging {
 
     val game = for {
       _ <- glfw.init()
-      w <- glfw.createOpenGLWindow()
-      _ <- glfw.renderLoop(w, GLSimpleLoop(gameLoop))
+      w <- glfw.createOpenGLWindow(WindowAlg.GL33, WindowAlg.WindowSettings(
+        height = 300,
+        width = 400,
+        title = "Hello World !!!"
+      ))
+      _ <- glfw.renderLoop(w)(GLSimpleLoop(gameLoop))
       _ <- glfw.close(w)
     } yield ()
 

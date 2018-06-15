@@ -1,8 +1,8 @@
 package me.ngrid.opengl.learnopengl
 
 import cats.effect.IO
-import me.ngrid.crimson.api.graphics.RenderLoopAlg
-import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLViewportIO, GLSimpleLoop, GlfwInterpIO}
+import me.ngrid.crimson.api.graphics.{RenderLoopAlg, WindowAlg}
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GLViewportIO, GlfwInterpIO}
 import org.lwjgl.opengl.GL11
 
 /**
@@ -16,8 +16,12 @@ object HelloGlfw {
 
     val m = for {
       _ <- glfw.init()
-      w <- glfw.createOpenGLWindow()
-      _ <- glfw.renderLoop(w, GLSimpleLoop(
+      w <- glfw.createOpenGLWindow(WindowAlg.GL33, WindowAlg.WindowSettings(
+        height = 300,
+        width = 400,
+        title = "Hello Glfw!!!"
+      ))
+      _ <- glfw.renderLoop(w)(GLSimpleLoop(
         gl => RenderLoopAlg.dynamic[IO, Unit] (
           _init = bg(gl).fold(IO.unit)(_.setBackgroundColor(0.2f, 0.3f, 0.3f, 1.0f)),
           _render = _ => IO {

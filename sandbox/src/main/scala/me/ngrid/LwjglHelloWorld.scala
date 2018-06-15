@@ -1,7 +1,7 @@
 package me.ngrid
 
 import cats.effect.IO
-import me.ngrid.crimson.api.graphics.RenderLoopAlg
+import me.ngrid.crimson.api.graphics.{RenderLoopAlg, WindowAlg}
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GlfwInterpIO}
 import org.lwjgl._
 import org.lwjgl.opengl.GL11
@@ -19,8 +19,12 @@ object LwjglHelloWorld {
 
     val game = for {
       _ <- glfw.init()
-      w <- glfw.createOpenGLWindow()
-      _ <- glfw.renderLoop(w, GLSimpleLoop[IO, Unit] { _ =>
+      w <- glfw.createOpenGLWindow(WindowAlg.GL33, WindowAlg.WindowSettings(
+        height = 300,
+        width = 400,
+        title = "Hello LWJGL!"
+      ))
+      _ <- glfw.renderLoop(w)(GLSimpleLoop[IO, Unit] { _ =>
         RenderLoopAlg.static(
           _init = IO {
             // Set the background color to red.

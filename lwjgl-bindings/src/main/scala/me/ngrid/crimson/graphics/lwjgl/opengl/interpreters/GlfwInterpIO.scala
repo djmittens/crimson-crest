@@ -35,7 +35,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
 
   //TODO: probably need to decompose this. a lot of stuff going on in here
   //TODO: figure out how to fit glViewport and all that jazz with this setup, eg: Callbacks!
-  override def createOpenGLWindow(): IO[Window] = IO {
+  override def createOpenGLWindow(version: WindowAlg.OpenGLApiVersion, settings: WindowAlg.WindowSettings): IO[Window] = IO {
 
     // Configure GLFW
     glfwDefaultWindowHints() // optional, the current window hints are already the default
@@ -43,14 +43,14 @@ object GlfwInterpIO extends WindowAlg[IO] {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
 
     // TODO: probably need an ADT for this, obviously would break the 4.5 examples, but we are ok for now
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.major)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minor)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL11.GL_TRUE)
 
     // Create the window
     //TODO: Add configuration for creating a window.
-    val window = glfwCreateWindow(300, 300, "Hello World!", NULL, NULL)
+    val window = glfwCreateWindow(settings.width, settings.height, settings.title, NULL, NULL)
     if (window == NULL)
       throw new RuntimeException("Failed to create the GLFW window")
 
@@ -94,7 +94,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
       glfwDestroyWindow(window)
     }
 
-  override def renderLoop(window: Window, loop: RenderLoopAlg[IO]): IO[Unit] = {
+  override def renderLoop(window: Window)(loop: RenderLoopAlg[IO]): IO[Unit] = {
 
     val initGlfw = IO {
 
@@ -134,7 +134,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
     initGlfw *> loop.init().bracket(use = lp)( release = loop.terminate)
   }
 
-  override def interceptClose(w: Window, f: Window => Unit): IO[Unit] = ???
+  override def interceptClose(w: Window)(f: Window => Unit): IO[Unit] = ???
 
   def tryResource[T <: AutoCloseable, U](res: => T)(f: T => U): Try[U] = {
     try {
