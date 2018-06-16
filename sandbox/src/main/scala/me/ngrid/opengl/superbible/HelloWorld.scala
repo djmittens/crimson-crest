@@ -51,10 +51,10 @@ object HelloWorld extends LazyLogging {
       val color = Array(nextColor(System.nanoTime(), cos[Double]), 0.0f, nextColor(System.nanoTime(), sin[Double]), 0.0f, 1.0f)
       GL30.glClearBufferfv(GL11.GL_COLOR, 0, color)
     } *> (x match {
-      case a@Some((_, triangle)) =>
-        triangle.draw *> IO(Thread.sleep(200)) *> IO.pure(a)
+      case Some((_, triangle)) =>
+        triangle.draw *> IO.wait(200)
 
-      case other => IO.pure(other)
+      case _ => IO.unit
     }),
     _terminate = {
       case Some((x, y)) => x.delete *> y.delete

@@ -60,6 +60,7 @@ object GlfwInterpIO extends WindowAlg[IO] {
         glfwSetWindowShouldClose(window, true)
     })
 
+    //TODO: this could move into a separate function, something like "center window"
     // Get the thread stack and push a new frame
     tryResource(MemoryStack.stackPush()) { stack =>
       //int*
