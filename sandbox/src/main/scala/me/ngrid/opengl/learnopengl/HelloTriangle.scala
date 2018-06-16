@@ -28,7 +28,7 @@ object HelloTriangle {
   def init(gl: GLCapabilities): IO[State] = for {
     _ <- bg(gl).fold(IO.unit)(_.setBackgroundColor(0.2f, 0.3f, 0.3f, 1.0f))
     triangleVao <- createTriangle()
-    program <- createShaderProgram()
+    program     <- createShaderProgram()
   } yield State(
     triangleVao = triangleVao,
     glShaderProgram = program
@@ -47,41 +47,41 @@ object HelloTriangle {
   } yield program.flatten
 
   def createTriangle(): IO[Int] = for {
-    vao <- createGLVertexArrayObject()
-    _ <- createGLVertexBuffer()
-    _ <- IO {
+//    _ <- createGLVertexBuffer()
+    vao <- IO {
+      val vao = GL30.glGenVertexArrays()
+      GL30.glBindVertexArray(vao)
+
+      val vbo = GL15.glGenBuffers()
+      GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
+      GL15.glBufferData(GL15.GL_ARRAY_BUFFER, triangleVertices, GL15.GL_STATIC_DRAW)
+
+
+//      val ebo = GL15.glGenBuffers()
+//      GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_STATIC_DRAW)
+//      GL15.glBufferData(GL15.GL_ELE)
+
       //The parameters for this are weird
       //TODO: review and document all the stuff thats going on in here.
       //TODO: 3*32 is a magic code for, 3 floats at a time makes a single point, but really we gotta have a better way to describe size of float
-      GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 32, 0L)
+      GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 4, 0L)
       //What the heck does this do again?
+      //it enables the vertex attribute pointer that we setup (with index being 0), because when they get setup,
+      // they are off by default
       GL20.glEnableVertexAttribArray(0)
+      vao
     }
   } yield vao
 
-  def createGLVertexArrayObject(): IO[Int] = IO {
-    val vao = GL30.glGenVertexArrays()
-    GL30.glBindVertexArray(vao)
-    vao
-  }
-
-  def createGLVertexBuffer(): IO[Int] = IO {
-    val vBuffer = GL15.glGenBuffers()
-    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vBuffer)
-    GL15.glBufferData(vBuffer, triangleVertices, GL15.GL_STATIC_DRAW)
-    vBuffer
-  }
-
-
   def render(x: State): IO[Unit] = IO {
+    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT)
+
     x.glShaderProgram.foreach { program =>
       GL20.glUseProgram(program.ptr)
       GL30.glBindVertexArray(x.triangleVao)
       GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 3)
+      GL30.glBindVertexArray(0)
     }
-
-
-    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT)
   }
 
   def terminate(x: State): IO[Unit] = {
@@ -98,14 +98,26 @@ object HelloTriangle {
 
 
   //triangle
-  val triangleVertices = Array(
+  final val triangleVertices: Array[Float] = Array(
     -0.5f, -0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
+    0.0f,  0.5f, 0.0f
+  )
+
+  final val rectangleVertices: Array[Float] = Array(
+    0.5f,  0.5f, 0.0f,  // top right
+    0.5f, -0.5f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f   // top left
+  )
+
+  final val rectangleIndices: Array[Int] = Array(  // note that we start from 0!
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
   )
 
   // language=GLSL
-  val vertexShader: String =
+  final val vertexShader: String =
     """
 #version 330 core
 layout (location = 0) in vec3 aPos;
