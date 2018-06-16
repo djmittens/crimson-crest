@@ -121,7 +121,7 @@ lazy val api = (project in file("api")).
     description := "Engine api"
   )
 
-val catsVersion = "1.0.1"
+val catsVersion = "1.1.0"
 
 val cats = Seq(
   "org.typelevel" %% "cats-core" % catsVersion,

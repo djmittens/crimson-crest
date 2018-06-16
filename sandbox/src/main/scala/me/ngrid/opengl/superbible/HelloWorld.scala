@@ -17,7 +17,7 @@ import org.lwjgl.opengl.GLCapabilities
 //import me.ngrid.crimson.api.filesystem.interpreters.TextFileInterpIO
 import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
 //import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
-//import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO, GlfwInterpIO}
+//import me.ngrid.crimson.goraphics.lwjgl.opengl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO, GlfwInterpIO}
 
 object HelloWorld extends LazyLogging {
   private val glfw = GlfwInterpIO
@@ -52,7 +52,7 @@ object HelloWorld extends LazyLogging {
       GL30.glClearBufferfv(GL11.GL_COLOR, 0, color)
     } *> (x match {
       case Some((_, triangle)) =>
-        triangle.draw *> IO.wait(200)
+        triangle.draw *> IO(Thread.sleep(200))
 
       case _ => IO.unit
     }),
