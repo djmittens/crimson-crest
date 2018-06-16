@@ -48,7 +48,7 @@ object HelloTriangle {
 
   def createTriangle(): IO[Int] = for {
     vao <- createGLVertexArrayObject()
-    vbo <- createGLVertexBuffer()
+    _ <- createGLVertexBuffer()
     _ <- IO {
       //The parameters for this are weird
       //TODO: review and document all the stuff thats going on in here.
@@ -108,7 +108,7 @@ object HelloTriangle {
   val vertexShader: String =
     """
 #version 330 core
-layout (location = 0) in vec3 Pos;
+layout (location = 0) in vec3 aPos;
 
 void main() {
   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
