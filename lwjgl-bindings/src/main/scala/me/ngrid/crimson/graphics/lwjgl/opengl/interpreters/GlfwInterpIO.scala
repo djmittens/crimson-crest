@@ -107,14 +107,6 @@ object GlfwInterpIO extends WindowAlg[IO] {
       glfwSwapInterval(1)
       // Make the window visible
       glfwShowWindow(window)
-
-      // This line is critical for LWJGL's interoperation with GLFW's
-      // OpenGL context, or any context that is managed externally.
-      // LWJGL detects the context that is current in the current thread,
-      // creates the GLCapabilities instance and makes the OpenGL bindings available for use.
-
-      //TODO: why is it that i need to call this immediately or twice? this makes like no sense.
-//      GL.createCapabilities()
     }
 
 

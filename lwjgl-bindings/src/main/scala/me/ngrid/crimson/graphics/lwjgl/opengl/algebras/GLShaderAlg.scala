@@ -1,14 +1,21 @@
 package me.ngrid.crimson.graphics.lwjgl.opengl.algebras
 
-import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg.{Shader, Program}
+import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg._
 
 trait GLShaderAlg[F[_], Err] {
-  def vertex(source: String): F[Either[Err, Shader[F]]]
-  def fragment(source: String): F[Either[Err, Shader[F]]]
-  def createShaderProgram(s: List[Shader[F]]): F[Either[Err, Program[F]]]
+  def link(program: UnlinkedProgram): F[Either[Err, LinkedProgram]]
+  def compile(compile: ShaderSource): F[Either[Err, CompiledShader]]
 }
 object GLShaderAlg {
-  case class Shader[F[_]](ptr: Int, source: String, delete: F[Unit])
+  sealed trait Shader
+  case class ShaderSource(source: String, kind: ShaderKind)
+  case class CompiledShader(ptr: Int, kind: ShaderKind)
 
-  case class Program[F[_]](ptr: Int, shaders: List[Shader[F]], delete: F[Unit])
+  sealed trait ShaderKind
+  case object VertexShader
+  case object FragmentShader
+
+  sealed trait ShaderProgram
+  case class UnlinkedProgram(shaders: List[CompiledShader]) extends ShaderProgram
+  case class LinkedProgram(ptr: Int) extends ShaderProgram
 }

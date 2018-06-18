@@ -3,10 +3,12 @@ package me.ngrid.opengl.learnopengl
 import cats.effect.IO
 import me.ngrid.crimson.api.graphics.RenderLoopAlg
 import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
-import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GL20ShaderInterpIO, GLSimpleLoop, GLViewportIO}
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GLViewportIO}
 import me.ngrid.opengl.SimpleWindow
 import org.lwjgl.opengl.{GL11, GL15, GL20, GL30, GLCapabilities}
 import cats.implicits._
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.geometry.GLPrimitivesInterpIO
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.shaders.GL20ShaderInterpIO
 //import cats.syntax._
 
 /**
@@ -28,7 +30,10 @@ object HelloTriangle {
   def init(gl: GLCapabilities): IO[State] = for {
     _ <- bg(gl).fold(IO.unit)(_.setBackgroundColor(0.2f, 0.3f, 0.3f, 1.0f))
     triangleVao <- createTriangle()
-    program     <- createShaderProgram()
+    triangle <- for {
+      program <- createShaderProgram()
+      triangle <- primitives(gl).toRight("Cant draw a triangle for the current gl version")
+    } yield
   } yield State(
     triangleVao = triangleVao,
     glShaderProgram = program
@@ -47,7 +52,7 @@ object HelloTriangle {
   } yield program.flatten
 
   def createTriangle(): IO[Int] = for {
-//    _ <- createGLVertexBuffer()
+    //    _ <- createGLVertexBuffer()
     vao <- IO {
       val vao = GL30.glGenVertexArrays()
       GL30.glBindVertexArray(vao)
@@ -57,9 +62,9 @@ object HelloTriangle {
       GL15.glBufferData(GL15.GL_ARRAY_BUFFER, triangleVertices, GL15.GL_STATIC_DRAW)
 
 
-//      val ebo = GL15.glGenBuffers()
-//      GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_STATIC_DRAW)
-//      GL15.glBufferData(GL15.GL_ELE)
+      //      val ebo = GL15.glGenBuffers()
+      //      GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_STATIC_DRAW)
+      //      GL15.glBufferData(GL15.GL_ELE)
 
       //The parameters for this are weird
       //TODO: review and document all the stuff thats going on in here.
@@ -73,16 +78,15 @@ object HelloTriangle {
     }
   } yield vao
 
-  def render(x: State): IO[Unit] = IO {
-    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT)
-
-    x.glShaderProgram.foreach { program =>
-      GL20.glUseProgram(program.ptr)
-      GL30.glBindVertexArray(x.triangleVao)
-      GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 3)
-      GL30.glBindVertexArray(0)
+  def render(x: State): IO[Unit] = for {
+    _ <- IO {
+      GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT)
     }
-  }
+    _ <- x.glShaderProgram.fold(
+      _ => IO.unit,
+      pg =>
+    )
+  } yield ()
 
   def terminate(x: State): IO[Unit] = {
     //todo: we can actually delete the shader objects right after we link them into a program, as we wont need them anymore
@@ -101,19 +105,19 @@ object HelloTriangle {
   final val triangleVertices: Array[Float] = Array(
     -0.5f, -0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
-    0.0f,  0.5f, 0.0f
+    0.0f, 0.5f, 0.0f
   )
 
   final val rectangleVertices: Array[Float] = Array(
-    0.5f,  0.5f, 0.0f,  // top right
-    0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left
+    0.5f, 0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, // bottom left
+    -0.5f, 0.5f, 0.0f // top left
   )
 
-  final val rectangleIndices: Array[Int] = Array(  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
+  final val rectangleIndices: Array[Int] = Array( // note that we start from 0!
+    0, 1, 3, // first triangle
+    1, 2, 3 // second triangle
   )
 
   // language=GLSL
@@ -142,4 +146,5 @@ void main()
 
   private val bg = GLViewportIO
   private val glsl = GL20ShaderInterpIO
+  private val primitives = GLPrimitivesInterpIO
 }
