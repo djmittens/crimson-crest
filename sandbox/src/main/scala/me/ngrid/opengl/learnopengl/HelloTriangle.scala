@@ -1,5 +1,6 @@
 package me.ngrid.opengl.learnopengl
 
+import cats.data.EitherT
 import cats.effect.IO
 import me.ngrid.crimson.api.graphics.RenderLoopAlg
 import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
@@ -29,26 +30,29 @@ object HelloTriangle {
 
   def init(gl: GLCapabilities): IO[State] = for {
     _ <- bg(gl).fold(IO.unit)(_.setBackgroundColor(0.2f, 0.3f, 0.3f, 1.0f))
-    triangleVao <- createTriangle()
-    triangle <- for {
-      program <- createShaderProgram()
-      triangle <- primitives(gl).toRight("Cant draw a triangle for the current gl version")
-    } yield
+//    triangleVao <- createTriangle()
+    triangle <- (for {
+      program <- EitherT(createShaderProgram())
+      alg <- EitherT.fromOption(primitives(gl), "Primitives does not support this version of opengl")
+      tri <- EitherT(alg.createTriangle(program).map(_.asRight[String]))
+    } yield tri).value
   } yield State(
-    triangleVao = triangleVao,
-    glShaderProgram = program
+    triangle = triangle.toOption
   )
 
-  def createShaderProgram(): IO[Either[String, GLShaderAlg.Program[IO]]] = for {
-    fShader <- glsl.createShader(glsl.GL_FRAGMENT_SHADER, fragmentShader)
-    vShader <- glsl.createShader(glsl.GL_VERTEX_SHADER, vertexShader)
+  def createShaderProgram(): IO[Either[String, GLShaderAlg.LinkedProgram]] = for {
+//    fShader <- glsl.createShader(glsl.GL_FRAGMENT_SHADER, )
+    fShader <- glsl.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader))
+    vShader <- glsl.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader))
+//    vShader <- glsl.createShader(glsl.GL_VERTEX_SHADER, vertexShader)
     shaders = List(fShader, vShader)
     //in intellij this is red, (why why intellij?), but it actually compiles!!
-    program <- shaders.sequence.map(glsl.createShaderProgram).sequence
-    _ <- shaders.traverse {
-      case Left(_) => IO.unit
-      case Right(x) => x.delete
-    }
+    program <- shaders.sequence.map(GLShaderAlg.UnlinkedProgram.apply).map(glsl.link).sequence
+    //TODO: delete the shaders after they have been compiled
+//    _ <- shaders.traverse {
+//      case Left(_) => IO.unit
+//      case Right(x) => x.delete
+//    }
   } yield program.flatten
 
   def createTriangle(): IO[Int] = for {
@@ -82,22 +86,22 @@ object HelloTriangle {
     _ <- IO {
       GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT)
     }
-    _ <- x.glShaderProgram.fold(
-      _ => IO.unit,
-      pg =>
-    )
+    _ <- x.triangle.fold(IO.unit)(_.draw)
   } yield ()
 
   def terminate(x: State): IO[Unit] = {
     //todo: we can actually delete the shader objects right after we link them into a program, as we wont need them anymore
     //This is a good piece of information, because it means the program is the actual unit that matter for render calls.
-    x.glShaderProgram.traverse(_.delete) *> IO.unit
+    //TODO: actually delete the program as well.
+//    x.glShaderProgram.traverse(_.delete) *> IO.unit
+    IO.unit
   }
 
 
   case class State(
-                    triangleVao: Int,
-                    glShaderProgram: Either[String, GLShaderAlg.Program[IO]]
+                  triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
+//                    triangleVao: Int,
+//                    glShaderProgram: Either[String, GLShaderAlg.LinkedProgram]
                   )
 
 

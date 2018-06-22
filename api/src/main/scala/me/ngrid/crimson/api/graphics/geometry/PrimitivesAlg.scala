@@ -8,5 +8,4 @@ trait PrimitivesAlg[F[_], ShaderProgram, Primitive] {
 }
 
 object PrimitivesAlg {
-  case class Primitive[F[_]](vertexArrayPtr: Int, draw: F[Unit], delete: F[Unit])
 }
