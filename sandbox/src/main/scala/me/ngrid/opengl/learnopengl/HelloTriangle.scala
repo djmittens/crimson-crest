@@ -8,6 +8,7 @@ import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GLView
 import me.ngrid.opengl.SimpleWindow
 import org.lwjgl.opengl.{GL11, GL15, GL20, GL30, GLCapabilities}
 import cats.implicits._
+//import cats.effect.implicits._
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.geometry.GLPrimitivesInterpIO
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.shaders.GL20ShaderInterpIO
 //import cats.syntax._
@@ -33,7 +34,7 @@ object HelloTriangle {
 //    triangleVao <- createTriangle()
     triangle <- (for {
       program <- EitherT(createShaderProgram())
-      alg <- EitherT.fromOption(primitives(gl), "Primitives does not support this version of opengl")
+      alg <- EitherT.fromOption[IO](primitives(gl), "Primitives does not support this version of opengl")
       tri <- EitherT(alg.createTriangle(program).map(_.asRight[String]))
     } yield tri).value
   } yield State(
@@ -93,8 +94,7 @@ object HelloTriangle {
     //todo: we can actually delete the shader objects right after we link them into a program, as we wont need them anymore
     //This is a good piece of information, because it means the program is the actual unit that matter for render calls.
     //TODO: actually delete the program as well.
-//    x.glShaderProgram.traverse(_.delete) *> IO.unit
-    IO.unit
+    x.triangle.fold(IO.unit)(_.delete)
   }
 
 

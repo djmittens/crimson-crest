@@ -7,11 +7,12 @@ import cats.implicits._
 import me.ngrid.crimson.api.graphics.{RenderLoopAlg, WindowAlg}
 import me.ngrid.crimson.assets.TextFileInterpIO
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.geometry.GLPrimitivesInterpIO
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.geometry.GLPrimitivesInterpIO.Primitive
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.shaders.GL20ShaderInterpIO
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GlfwInterpIO}
 import org.lwjgl.opengl.{GL11, GL30}
-import spire.math._
 import spire.implicits._
+import spire.math._
 //import cats.syntax._
 import com.typesafe.scalalogging.LazyLogging
 import org.lwjgl.opengl.GLCapabilities
@@ -26,7 +27,7 @@ object HelloWorld extends LazyLogging {
   private val basicShader = new GLShaders(GL20ShaderInterpIO)
   private val txt = TextFileInterpIO
 
-  type State = Option[(GLShaderAlg.Program[IO], PrimitivesAlg.Primitive[IO])]
+  type State = Option[(GLShaderAlg.LinkedProgram, Primitive[IO])]
 
 
   def gameLoop(gl: GLCapabilities): RenderLoopAlg.Aux[IO, State] = RenderLoopAlg.dynamic[IO, State](
@@ -58,7 +59,9 @@ object HelloWorld extends LazyLogging {
       case _ => IO.unit
     }),
     _terminate = {
-      case Some((x, y)) => x.delete *> y.delete
+      case Some(_) =>
+        IO.unit
+//        x.delete *> y.delete
       case None => IO.unit
     }
   )
@@ -93,16 +96,16 @@ class GLShaders[F[_] : Monad, Err](glShader: GLShaderAlg[F, Err]) {
   // This is a single vertex, in the middle of our clip space (??? what the heck does that mean)
   // which is the coordinate system expected by the next stage of the OpenGL pipeline.
 
-  def basicShaderProgram(vertexShader: String, fragmentShader: String): F[Either[Err, GLShaderAlg.Program[F]]] = (for {
-    vs <- EitherT(glShader.vertex(vertexShader))
-    fs <- EitherT(glShader.fragment(fragmentShader))
+  def basicShaderProgram(vertexShader: String, fragmentShader: String): F[Either[Err, GLShaderAlg.LinkedProgram]] = (for {
+    vs <- EitherT(glShader.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader)))
+    fs <- EitherT(glShader.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader)))
     //FIXME if there are failures past this point, its possible, to leak shaders, we need to clean this
-    pg <- EitherT(glShader.createShaderProgram(List(vs, fs)))
+    pg <- EitherT(glShader.link(GLShaderAlg.UnlinkedProgram(List(vs, fs))))
     _ <- EitherT.liftF[F, Err, Unit](deleteShaders(List(vs, fs)))
   } yield pg).value
 
 
-  def deleteShaders(sh: List[GLShaderAlg.Shader[F]]): F[Unit] = {
-    sh.map(x => x.delete).sequence.map(_ => ())
+  def deleteShaders(@deprecated("unused", "") x: List[GLShaderAlg.CompiledShader]): F[Unit] = {
+    Monad[F].unit
   }
 }
