@@ -2,12 +2,12 @@ package me.ngrid.opengl.learnopengl
 
 import cats.data.EitherT
 import cats.effect.IO
+import cats.implicits._
 import me.ngrid.crimson.api.graphics.RenderLoopAlg
 import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GLViewportIO}
 import me.ngrid.opengl.SimpleWindow
-import org.lwjgl.opengl.{GL11, GL15, GL20, GL30, GLCapabilities}
-import cats.implicits._
+import org.lwjgl.opengl.{GL11, GLCapabilities}
 //import cats.effect.implicits._
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.geometry.GLPrimitivesInterpIO
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.shaders.GL20ShaderInterpIO
@@ -41,47 +41,14 @@ object HelloTriangle {
     triangle = triangle.toOption
   )
 
+
   def createShaderProgram(): IO[Either[String, GLShaderAlg.LinkedProgram]] = for {
-//    fShader <- glsl.createShader(glsl.GL_FRAGMENT_SHADER, )
     fShader <- glsl.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader))
     vShader <- glsl.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader))
-//    vShader <- glsl.createShader(glsl.GL_VERTEX_SHADER, vertexShader)
-    shaders = List(fShader, vShader)
+    shaders = List(fShader, vShader).sequence
     //in intellij this is red, (why why intellij?), but it actually compiles!!
-    program <- shaders.sequence.map(GLShaderAlg.UnlinkedProgram.apply).map(glsl.link).sequence
-    //TODO: delete the shaders after they have been compiled
-//    _ <- shaders.traverse {
-//      case Left(_) => IO.unit
-//      case Right(x) => x.delete
-//    }
+    program <- shaders.map(GLShaderAlg.UnlinkedProgram.apply).map(glsl.link).sequence
   } yield program.flatten
-
-  def createTriangle(): IO[Int] = for {
-    //    _ <- createGLVertexBuffer()
-    vao <- IO {
-      val vao = GL30.glGenVertexArrays()
-      GL30.glBindVertexArray(vao)
-
-      val vbo = GL15.glGenBuffers()
-      GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
-      GL15.glBufferData(GL15.GL_ARRAY_BUFFER, triangleVertices, GL15.GL_STATIC_DRAW)
-
-
-      //      val ebo = GL15.glGenBuffers()
-      //      GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_STATIC_DRAW)
-      //      GL15.glBufferData(GL15.GL_ELE)
-
-      //The parameters for this are weird
-      //TODO: review and document all the stuff thats going on in here.
-      //TODO: 3*32 is a magic code for, 3 floats at a time makes a single point, but really we gotta have a better way to describe size of float
-      GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 4, 0L)
-      //What the heck does this do again?
-      //it enables the vertex attribute pointer that we setup (with index being 0), because when they get setup,
-      // they are off by default
-      GL20.glEnableVertexAttribArray(0)
-      vao
-    }
-  } yield vao
 
   def render(x: State): IO[Unit] = for {
     _ <- IO {
