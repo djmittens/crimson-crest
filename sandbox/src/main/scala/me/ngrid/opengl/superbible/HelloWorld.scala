@@ -17,24 +17,22 @@ import spire.math._
 import com.typesafe.scalalogging.LazyLogging
 import org.lwjgl.opengl.GLCapabilities
 //import me.ngrid.crimson.api.filesystem.interpreters.TextFileInterpIO
-import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
 //import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.{GLShader, GLShaderAlg, GLShaderProgram}
 //import me.ngrid.crimson.goraphics.lwjgl.opengl.interpreters.{GL20ShaderInterpIO, GLPrimitivesInterpIO, GlfwInterpIO}
 
 object HelloWorld extends LazyLogging {
   private val glfw = GlfwInterpIO
   private val primitives = GLPrimitivesInterpIO
-  private val basicShader = new GLShaders(GL20ShaderInterpIO)
+  private val glsl = GL20ShaderInterpIO
   private val txt = TextFileInterpIO
 
-  type State = Option[(GLShaderAlg.LinkedProgram, Primitive[IO])]
+  private type State = Option[(glsl.LinkedProgram, Primitive[IO])]
 
-
-  def gameLoop(gl: GLCapabilities): RenderLoopAlg.Aux[IO, State] = RenderLoopAlg.dynamic[IO, State](
+  private def gameLoop(gl: GLCapabilities): RenderLoopAlg.Aux[IO, State] = RenderLoopAlg.dynamic[IO, State](
     _init = for {
       vs <- txt.readAsString("/triangleVertexShader.glsl")
       fs <- txt.readAsString("/triangleFragmentShader.glsl")
-      pg <- basicShader.basicShaderProgram(vs, fs).map {
+      pg <- GLShaders.basicShaderProgram(vs, fs).map {
         case Left(e) =>
           logger.error("Failed to compile the most basic shader program ever\n {}", e)
           None
@@ -89,23 +87,29 @@ object HelloWorld extends LazyLogging {
     res
   }
 
-}
+  private object GLShaders {
+    // #version 450 core <-- means that we will use version 4.5 of the shading language.
+    // This is a single vertex, in the middle of our clip space (??? what the heck does that mean)
+    // which is the coordinate system expected by the next stage of the OpenGL pipeline.
 
-class GLShaders[F[_] : Monad, Err](glShader: GLShaderAlg[F, Err]) {
-  // #version 450 core <-- means that we will use version 4.5 of the shading language.
-  // This is a single vertex, in the middle of our clip space (??? what the heck does that mean)
-  // which is the coordinate system expected by the next stage of the OpenGL pipeline.
+    def basicShaderProgram(vertexShader: String, fragmentShader: String): IO[Either[String, glsl.LinkedProgram]] = (for {
+      //    vs <- EitherT(glShader.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader)))
+      //    fs <- EitherT(glShader.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader)))
+      vs <- EitherT(glsl.vertex(vertexShader))
+      fs <-EitherT(glsl.fragment(fragmentShader))
+      //FIXME if there are failures past this point, its possible, to leak shaders, we need to clean this
+      pg <- EitherT(glsl.link(glsl.UnlinkedProgram(
+        fragmentShader = fs,
+        vertexShader = Some(vs)
+      )))
+      //TODO: actually delete some shaders
+      //    _ <- EitherT.liftF[F, Err, Unit](deleteShaders(List(vs, fs)))
+    } yield pg).value
 
-  def basicShaderProgram(vertexShader: String, fragmentShader: String): F[Either[Err, GLShaderAlg.LinkedProgram]] = (for {
-    vs <- EitherT(glShader.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader)))
-    fs <- EitherT(glShader.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader)))
-    //FIXME if there are failures past this point, its possible, to leak shaders, we need to clean this
-    pg <- EitherT(glShader.link(GLShaderAlg.UnlinkedProgram(List(vs, fs))))
-    _ <- EitherT.liftF[F, Err, Unit](deleteShaders(List(vs, fs)))
-  } yield pg).value
 
-
-  def deleteShaders(@deprecated("unused", "") x: List[GLShaderAlg.CompiledShader]): F[Unit] = {
-    Monad[F].unit
+    def deleteShaders(@deprecated("unused", "") x: List[glsl.CompiledShader]): IO[Unit] = {
+      Monad[IO].unit
+    }
   }
 }
+

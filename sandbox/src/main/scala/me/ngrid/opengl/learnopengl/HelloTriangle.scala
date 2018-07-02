@@ -3,8 +3,8 @@ package me.ngrid.opengl.learnopengl
 import cats.data.EitherT
 import cats.effect.IO
 import cats.implicits._
+//import cats.syntax._
 import me.ngrid.crimson.api.graphics.RenderLoopAlg
-import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GLViewportIO}
 import me.ngrid.opengl.SimpleWindow
 import org.lwjgl.opengl.{GL11, GLCapabilities}
@@ -31,7 +31,7 @@ object HelloTriangle {
 
   def init(gl: GLCapabilities): IO[State] = for {
     _ <- bg(gl).fold(IO.unit)(_.setBackgroundColor(0.2f, 0.3f, 0.3f, 1.0f))
-//    triangleVao <- createTriangle()
+    //    triangleVao <- createTriangle()
     triangle <- (for {
       program <- EitherT(createShaderProgram())
       alg <- EitherT.fromOption[IO](primitives(gl), "Primitives does not support this version of opengl")
@@ -42,13 +42,23 @@ object HelloTriangle {
   )
 
 
-  def createShaderProgram(): IO[Either[String, GLShaderAlg.LinkedProgram]] = for {
-    fShader <- glsl.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader))
-    vShader <- glsl.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader))
-    shaders = List(fShader, vShader).sequence
+  private def createShaderProgram(): IO[Either[String, glsl.LinkedProgram]] = for {
+    //    fShader <- glsl.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader))
+    //    vShader <- glsl.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader))
+    fShader <- glsl.fragment(fragmentShader)
+    vShader <- glsl.vertex(vertexShader)
+    shaders: Either[String, glsl.UnlinkedProgram] = for {
+      fs <- fShader
+      vs <- vShader
+    } yield glsl.UnlinkedProgram(
+      fragmentShader = fs,
+      vertexShader = Some(vs)
+    )
     //in intellij this is red, (why why intellij?), but it actually compiles!!
-    program <- shaders.map(GLShaderAlg.UnlinkedProgram.apply).map(glsl.link).sequence
-  } yield program.flatten
+    program <- shaders.fold(_ => IO.pure("Not all shaders exist".asLeft), x => IO.pure(x.asRight)).flatMap { x =>
+      x.fold(x => IO.pure(x.asLeft), glsl.link)
+    }
+  } yield program
 
   def render(x: State): IO[Unit] = for {
     _ <- IO {
@@ -66,9 +76,9 @@ object HelloTriangle {
 
 
   case class State(
-                  triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
-//                    triangleVao: Int,
-//                    glShaderProgram: Either[String, GLShaderAlg.LinkedProgram]
+                    triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
+                    //                    triangleVao: Int,
+                    //                    glShaderProgram: Either[String, GLShaderAlg.LinkedProgram]
                   )
 
 

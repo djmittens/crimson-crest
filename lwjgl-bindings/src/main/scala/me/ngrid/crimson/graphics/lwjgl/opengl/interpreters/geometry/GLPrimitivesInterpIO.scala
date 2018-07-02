@@ -4,11 +4,14 @@ import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import me.ngrid.crimson.api.graphics.geometry.PrimitivesAlg
-import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg
+import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.shaders.GL20ShaderInterpIO
 import org.lwjgl.opengl._
 
 object GLPrimitivesInterpIO extends LazyLogging {
-  type Algebra[F[_]] = PrimitivesAlg[F, GLShaderAlg.LinkedProgram, Primitive[F]]
+  // Oh the great coupling :(  will need to redesign the whole thing later anyways.
+  val glsl = GL20ShaderInterpIO
+
+  type Algebra[F[_]] = PrimitivesAlg[F, glsl.LinkedProgram, Primitive[F]]
 
   case class Primitive[F[_]](vertexArrayPtr: Int, draw: F[Unit], delete: F[Unit])
 
@@ -22,9 +25,9 @@ object GLPrimitivesInterpIO extends LazyLogging {
   }
 
   object Gl33 extends Algebra[IO] {
-    override def createPoint(shader: GLShaderAlg.LinkedProgram, size: Float): IO[Primitive[IO]] = ???
+    override def createPoint(shader: glsl.LinkedProgram, size: Float): IO[Primitive[IO]] = ???
 
-    override def createTriangle(shader: GLShaderAlg.LinkedProgram): IO[Primitive[IO]] = IO {
+    override def createTriangle(shader: glsl.LinkedProgram): IO[Primitive[IO]] = IO {
       val vao = GL30.glGenVertexArrays()
       GL30.glBindVertexArray(vao)
 
@@ -57,7 +60,7 @@ object GLPrimitivesInterpIO extends LazyLogging {
       )
     }
 
-    override def createRectangle(shader: GLShaderAlg.LinkedProgram): IO[Primitive[IO]] = ???
+    override def createRectangle(shader: glsl.LinkedProgram): IO[Primitive[IO]] = ???
 
     //triangle
     final val triangleVertices: Array[Float] = Array(
