@@ -54,9 +54,13 @@ object HelloTriangle {
       fragmentShader = fs,
       vertexShader = Some(vs)
     )
-    //in intellij this is red, (why why intellij?), but it actually compiles!!
     program <- shaders.fold(_ => IO.pure("Not all shaders exist".asLeft), x => IO.pure(x.asRight)).flatMap { x =>
       x.fold(x => IO.pure(x.asLeft), glsl.link)
+    }
+    _ <- {
+      // Delete the shaders because we are done with them
+      fShader.fold(_ => IO.unit, glsl.delete) *>
+        vShader.fold(_ => IO.unit, glsl.delete)
     }
   } yield program
 
@@ -77,8 +81,6 @@ object HelloTriangle {
 
   case class State(
                     triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
-                    //                    triangleVao: Int,
-                    //                    glShaderProgram: Either[String, GLShaderAlg.LinkedProgram]
                   )
 
 

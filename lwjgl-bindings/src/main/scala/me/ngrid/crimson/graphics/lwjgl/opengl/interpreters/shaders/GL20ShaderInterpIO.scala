@@ -18,8 +18,8 @@ object GL20ShaderInterpIO extends GLShaderAlg[IO, String] with LazyLogging {
     }
 
     // Actually attach all of the shaders
-    attachShader(program.fragmentShader.value.ptr)
-    program.vertexShader.foreach(x => attachShader(x.value.ptr))
+    attachShader(program.fragmentShader.ptr)
+    program.vertexShader.foreach(x => attachShader(x.ptr))
 
     logger.trace("Linking program")
     GL20.glLinkProgram(ptr)
@@ -35,14 +35,21 @@ object GL20ShaderInterpIO extends GLShaderAlg[IO, String] with LazyLogging {
     }
   }
 
-  override def fragment(source: CharSequence): IO[Either[String, FragmentShader]] =
-    compile(source, GL20.GL_FRAGMENT_SHADER).map(_.map (FragmentShader.apply))
+  override def fragment(source: CharSequence): IO[Either[String, CompiledShader[Shader.Fragment.type]]] =
+    compile(source, Shader.Fragment)
 
-  override def vertex(source: CharSequence): IO[Either[String, VertexShader]] =
-    compile(source, GL20.GL_VERTEX_SHADER).map(_.map(VertexShader.apply))
+  override def vertex(source: CharSequence): IO[Either[String, CompiledShader[Shader.Vertex.type]]] =
+    compile(source, Shader.Vertex)
 
-  private[this] def compile(src: CharSequence, kind: Int): IO[Either[String, CompiledShader]] = IO {
-    val sh = GL20.glCreateShader(kind)
+  private[this] def compile[T <: Shader](src: CharSequence, kind: T): IO[Either[String, CompiledShader[T]]] = IO {
+    val iKind = kind match {
+      case Shader.Vertex => GL20.GL_VERTEX_SHADER
+      case Shader.Fragment => GL20.GL_FRAGMENT_SHADER
+      case _ => -1
+
+    }
+
+    val sh = GL20.glCreateShader(iKind)
     logger.trace(s"creating a new shader $sh")
 
     //TODO: these return stuff, eg errors, need to handle them
@@ -54,7 +61,7 @@ object GL20ShaderInterpIO extends GLShaderAlg[IO, String] with LazyLogging {
       //      GLShaderAlg.Shader(sh, source, delete = IO{GL20.glDeleteShader(sh)}).asRight
 //      GLShaderAlg.CompiledShader(sh, shader.kind).asRight
 
-      CompiledShader(sh).asRight
+      CompiledShader(sh, kind).asRight
     } else {
       val err = GL20.glGetShaderInfoLog(sh)
       logger.trace(s"Encountered an error compiling shader $sh: $err")
@@ -63,6 +70,17 @@ object GL20ShaderInterpIO extends GLShaderAlg[IO, String] with LazyLogging {
     }
   }
 
-  case class CompiledShader(ptr: Int)
-  case class LinkedProgram(ptr: Int)
+
+  override def delete(shader: GL20ShaderInterpIO.CompiledShader[_]): IO[Unit] = IO {
+    logger.trace("Deleting glsl shader {}", shader)
+    GL20.glDeleteShader(shader.ptr)
+    ()
+  }
+
+  override def delete(program: GL20ShaderInterpIO.LinkedProgram): IO[Unit] = IO {
+    logger.trace("Deleting glsl program {}", program)
+    GL20.glDeleteProgram(program.ptr)
+  }
+
+  type Pointer = Int
 }

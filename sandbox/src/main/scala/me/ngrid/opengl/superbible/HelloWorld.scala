@@ -107,7 +107,7 @@ object HelloWorld extends LazyLogging {
     } yield pg).value
 
 
-    def deleteShaders(@deprecated("unused", "") x: List[glsl.CompiledShader]): IO[Unit] = {
+    def deleteShaders(@deprecated("unused", "") x: List[glsl.CompiledShader[_]]): IO[Unit] = {
       Monad[IO].unit
     }
   }

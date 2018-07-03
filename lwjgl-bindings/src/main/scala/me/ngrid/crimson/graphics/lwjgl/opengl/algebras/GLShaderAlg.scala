@@ -2,30 +2,30 @@ package me.ngrid.crimson.graphics.lwjgl.opengl.algebras
 
 trait GLShaderAlg[F[_], Err] {
   def link(program: UnlinkedProgram): F[Either[Err, LinkedProgram]]
-  def fragment(source: CharSequence): F[Either[Err, FragmentShader]]
-  def vertex(source: CharSequence): F[Either[Err, VertexShader]]
 
-//  type MapOfShaders = F[immutable.Map[GLShaderAlg.ShaderSource, Either[Err, GLShaderAlg.CompiledShader]]]
-//  def compile(sources: List[GLShaderAlg.ShaderSource])(implicit F: Monad[F]): MapOfShaders = {
-//    sources.foldLeft[MapOfShaders](F.pure(immutable.Map.empty)) {(buf, shr) =>
-//      buf >>= { map =>
-//        compile(shr).map { x =>
-//          map + (shr -> x)
-//        }
-//      }
-//    }
-//  }
+  def fragment(source: CharSequence): F[Either[Err, CompiledShader[Shader.Fragment.type]]]
 
-  type CompiledShader
+  def vertex(source: CharSequence): F[Either[Err, CompiledShader[Shader.Vertex.type]]]
 
-  sealed trait ShaderKind
-  case class FragmentShader(value: CompiledShader) extends ShaderKind
-  case class VertexShader(value: CompiledShader) extends ShaderKind
+  def delete(shader: CompiledShader[_]): F[Unit]
 
-  type LinkedProgram
+  def delete(program: LinkedProgram): F[Unit]
+
+  type Pointer
+
+  case class CompiledShader[T <: Shader](ptr: Pointer, kind: T)
+
+  sealed trait Shader
+
+  object Shader {
+    case object Fragment extends Shader
+    case object Vertex extends Shader
+  }
+
+  case class LinkedProgram(ptr: Pointer)
 
   case class UnlinkedProgram(
-                              fragmentShader: FragmentShader,
-                              vertexShader:  Option[VertexShader] = None
-                            )
+    fragmentShader: CompiledShader[Shader.Fragment.type],
+    vertexShader: Option[CompiledShader[Shader.Vertex.type]] = None)
+
 }
