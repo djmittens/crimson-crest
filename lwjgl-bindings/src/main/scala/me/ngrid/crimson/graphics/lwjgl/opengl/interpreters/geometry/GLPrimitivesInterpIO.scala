@@ -47,7 +47,6 @@ object GLPrimitivesInterpIO extends LazyLogging {
       Primitive(
         vao,
         draw =  IO {
-          GL30.glBindVertexArray(vao)
           GL20.glUseProgram(shader.ptr)
           GL30.glBindVertexArray(vao)
           GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 3)
@@ -60,7 +59,42 @@ object GLPrimitivesInterpIO extends LazyLogging {
       )
     }
 
-    override def createRectangle(shader: glsl.LinkedProgram): IO[Primitive[IO]] = ???
+    override def createRectangle(shader: glsl.LinkedProgram): IO[Primitive[IO]] = IO {
+      // business as usual with setting up the vao.
+      val vao = GL30.glGenVertexArrays()
+      GL30.glBindVertexArray(vao)
+
+      // Setup all of the vertices for the rectangle
+      val vbo = GL15.glGenBuffers()
+      GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
+      GL15.glBufferData(GL15.GL_ARRAY_BUFFER, rectangleVertices, GL15.GL_STATIC_DRAW)
+
+      // Setup the buffer with all the indices into the vertices array.
+      val ebo = GL15.glGenBuffers()
+      GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ebo)
+      GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, rectangleIndices, GL15.GL_STATIC_DRAW)
+
+      // Create and enable the pointer for the attributes
+      GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 4, 0L)
+      GL20.glEnableVertexAttribArray(0)
+
+      Primitive(
+        vao,
+        draw = IO {
+          GL20.glUseProgram(shader.ptr)
+
+          GL30.glBindVertexArray(vao)
+          // why do we always draw triangles? what about a triangle fan or any other primitive type?
+          GL11.glDrawElements(GL11.GL_TRIANGLES, rectangleIndices.length, GL11.GL_UNSIGNED_INT, 0)
+          // not necessary but it seems like its best practice to unbind the vao at the end there
+          GL30.glBindVertexArray(0)
+          ()
+        },
+        delete = IO {
+          ()
+        }
+      )
+    }
 
     //triangle
     final val triangleVertices: Array[Float] = Array(
@@ -69,6 +103,17 @@ object GLPrimitivesInterpIO extends LazyLogging {
       0.0f,  0.5f, 0.0f
     )
 
+    final val rectangleVertices: Array[Float] = Array(
+      0.5f, 0.5f, 0.0f, // top right
+      0.5f, -0.5f, 0.0f, // bottom right
+      -0.5f, -0.5f, 0.0f, // bottom left
+      -0.5f, 0.5f, 0.0f // top left
+    )
+
+    final val rectangleIndices: Array[Int] = Array( // note that we start from 0!
+      0, 1, 3, // first triangle
+      1, 2, 3 // second triangle
+    )
   }
 
 }

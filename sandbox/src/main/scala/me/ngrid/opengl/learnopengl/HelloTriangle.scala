@@ -35,7 +35,7 @@ object HelloTriangle {
     triangle <- (for {
       program <- EitherT(createShaderProgram())
       alg <- EitherT.fromOption[IO](primitives(gl), "Primitives does not support this version of opengl")
-      tri <- EitherT(alg.createTriangle(program).map(_.asRight[String]))
+      tri <- EitherT(alg.createRectangle(program).map(_.asRight[String]))
     } yield tri).value
   } yield State(
     triangle = triangle.toOption
@@ -83,25 +83,6 @@ object HelloTriangle {
                     triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
                   )
 
-
-  //triangle
-  final val triangleVertices: Array[Float] = Array(
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
-  )
-
-  final val rectangleVertices: Array[Float] = Array(
-    0.5f, 0.5f, 0.0f, // top right
-    0.5f, -0.5f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, // bottom left
-    -0.5f, 0.5f, 0.0f // top left
-  )
-
-  final val rectangleIndices: Array[Int] = Array( // note that we start from 0!
-    0, 1, 3, // first triangle
-    1, 2, 3 // second triangle
-  )
 
   // language=GLSL
   final val vertexShader: String =
