@@ -1,14 +1,31 @@
 package me.ngrid.crimson.graphics.lwjgl.opengl.algebras
 
-import me.ngrid.crimson.graphics.lwjgl.opengl.algebras.GLShaderAlg.{Shader, Program}
-
 trait GLShaderAlg[F[_], Err] {
-  def vertex(source: String): F[Either[Err, Shader[F]]]
-  def fragment(source: String): F[Either[Err, Shader[F]]]
-  def createShaderProgram(s: List[Shader[F]]): F[Either[Err, Program[F]]]
-}
-object GLShaderAlg {
-  case class Shader[F[_]](ptr: Int, source: String, delete: F[Unit])
+  def link(program: UnlinkedProgram): F[Either[Err, LinkedProgram]]
 
-  case class Program[F[_]](ptr: Int, shaders: List[Shader[F]], delete: F[Unit])
+  def fragment(source: CharSequence): F[Either[Err, CompiledShader[Shader.Fragment.type]]]
+
+  def vertex(source: CharSequence): F[Either[Err, CompiledShader[Shader.Vertex.type]]]
+
+  def delete(shader: CompiledShader[_]): F[Unit]
+
+  def delete(program: LinkedProgram): F[Unit]
+
+  type Pointer
+
+  case class CompiledShader[T <: Shader](ptr: Pointer, kind: T)
+
+  sealed trait Shader
+
+  object Shader {
+    case object Fragment extends Shader
+    case object Vertex extends Shader
+  }
+
+  case class LinkedProgram(ptr: Pointer)
+
+  case class UnlinkedProgram(
+    fragmentShader: CompiledShader[Shader.Fragment.type],
+    vertexShader: Option[CompiledShader[Shader.Vertex.type]] = None)
+
 }

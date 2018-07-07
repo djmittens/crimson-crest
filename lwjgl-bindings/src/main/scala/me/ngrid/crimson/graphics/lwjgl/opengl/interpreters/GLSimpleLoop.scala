@@ -27,7 +27,7 @@ case class GLSimpleLoop[F[_]: Monad, Context]
     _other.init()
   }
 
-  override def render(st: Context): F[Context] =
+  override def render(st: Context): F[Unit] =
     _other.render(st)
 
   override def terminate(st: Context): F[Unit] =
