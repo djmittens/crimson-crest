@@ -3,6 +3,7 @@ package me.ngrid.opengl.learnopengl
 import cats.data.EitherT
 import cats.effect.IO
 import cats.implicits._
+import cats.syntax._
 //import cats.syntax._
 import me.ngrid.crimson.api.graphics.RenderLoopAlg
 import me.ngrid.crimson.graphics.lwjgl.opengl.interpreters.{GLSimpleLoop, GLViewportIO}
@@ -43,10 +44,17 @@ object HelloTriangle {
 
 
   private def createShaderProgram(): IO[Either[String, glsl.LinkedProgram]] = for {
-    //    fShader <- glsl.compile(GLShaderAlg.ShaderSource(fragmentShader, GLShaderAlg.FragmentShader))
-    //    vShader <- glsl.compile(GLShaderAlg.ShaderSource(vertexShader, GLShaderAlg.VertexShader))
-    fShader <- glsl.fragment(fragmentShader)
     vShader <- glsl.vertex(vertexShader)
+    fShader <- glsl.fragment(fragmentShader)
+
+    k = (vShader.toValidatedNel, fShader.toValidatedNel).mapN {
+      case (v, f) =>
+        glsl.UnlinkedProgram(
+          fragmentShader = f,
+          vertexShader = Some(v)
+        )
+    }
+
     shaders: Either[String, glsl.UnlinkedProgram] = for {
       fs <- fShader
       vs <- vShader
@@ -54,14 +62,11 @@ object HelloTriangle {
       fragmentShader = fs,
       vertexShader = Some(vs)
     )
-    program <- shaders.fold(_ => IO.pure("Not all shaders exist".asLeft), x => IO.pure(x.asRight)).flatMap { x =>
-      x.fold(x => IO.pure(x.asLeft), glsl.link)
-    }
-    _ <- {
-      // Delete the shaders because we are done with them
-      fShader.fold(_ => IO.unit, glsl.delete) *>
-        vShader.fold(_ => IO.unit, glsl.delete)
-    }
+
+    program <- shaders.fold(_ => IO.pure("Not all shaders exist".asLeft), x => glsl.link(x))
+
+    _ <- fShader.fold(_ => IO.unit, glsl.delete)
+    _ <- vShader.fold(_ => IO.unit, glsl.delete)
   } yield program
 
   def render(x: State): IO[Unit] = for {
@@ -80,8 +85,8 @@ object HelloTriangle {
 
 
   case class State(
-                    triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
-                  )
+    triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
+  )
 
 
   // language=GLSL
