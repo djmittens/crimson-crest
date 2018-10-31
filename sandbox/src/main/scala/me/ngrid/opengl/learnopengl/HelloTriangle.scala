@@ -32,28 +32,57 @@ object HelloTriangle {
 
   def init(gl: GLCapabilities): IO[State] = for {
     _ <- bg(gl).fold(IO.unit)(_.setBackgroundColor(0.2f, 0.3f, 0.3f, 1.0f))
+    program <- EitherT(createShaderProgram())
+
     //    triangleVao <- createTriangle()
     triangle <- (for {
-      program <- EitherT(createShaderProgram())
       alg <- EitherT.fromOption[IO](primitives(gl), "Primitives does not support this version of opengl")
       tri <- EitherT(alg.createRectangle(program).map(_.asRight[String]))
     } yield tri).value
   } yield State(
-    triangle = triangle.toOption
+    triangle = triangle.toOption,
+    program = program
   )
+  type MM[A]= Either[String, A]
+
+  val map = Map(
+    "wooh" -> (fragmentShader -> glsl.Shader.Fragment),
+    "mooh" -> (vertexShader -> glsl.Shader.Vertex)
+  )
+
+  val mooh = map.toList.traverse[IO, (String, Either[String, glsl.CompiledShader[_]])] {
+    case (key, (prgm, glsl.Shader.Fragment)) =>
+      glsl.fragment(prgm).map(key -> _)
+    case (key, (prgm, glsl.Shader.Vertex)) =>
+      glsl.vertex(prgm).map(key -> _)
+  }
+
+  def createShaderProgram(
+    fragmentShader: CharSequence,
+    vertexShader: Option[CharSequence] = None): IO[Either[String, glsl.LinkedProgram]] = for {
+    //Option[CharSequence] => Option[IO[Either[String, T]]] => ??? => IO[Option[Either[String, T]]
+    fShader <- glsl.fragment(fragmentShader)
+    vShader <- vertexShader.map(glsl.vertex).sequence[IO, Either[String, glsl.CompiledShader[glsl.Shader.Vertex.type]]]
+    program = for {
+      fs <- fShader
+      vs <- vShader.sequence[MM, glsl.CompiledShader[glsl.Shader.Vertex.type]]
+    } yield glsl.UnlinkedProgram(
+      fragmentShader = fs,
+      vertexShader = vs
+    )
+
+    linked <- program.map(glsl.link).sequence[IO, MM[glsl.LinkedProgram]]
+
+//    program = glsl.UnlinkedProgram(
+//      fragmentShader = fShader,
+//      vertexShader = vShader
+//    )
+  } yield
 
 
   private def createShaderProgram(): IO[Either[String, glsl.LinkedProgram]] = for {
     vShader <- glsl.vertex(vertexShader)
     fShader <- glsl.fragment(fragmentShader)
-
-    k = (vShader.toValidatedNel, fShader.toValidatedNel).mapN {
-      case (v, f) =>
-        glsl.UnlinkedProgram(
-          fragmentShader = f,
-          vertexShader = Some(v)
-        )
-    }
 
     shaders: Either[String, glsl.UnlinkedProgram] = for {
       fs <- fShader
@@ -85,7 +114,8 @@ object HelloTriangle {
 
 
   case class State(
-    triangle: Option[GLPrimitivesInterpIO.Primitive[IO]]
+    triangle: Option[GLPrimitivesInterpIO.Primitive[IO]],
+    program: glsl.LinkedProgram
   )
 
 
